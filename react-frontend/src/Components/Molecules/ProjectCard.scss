@@ -1,0 +1,9 @@
+.project-card {
+  width: 650px;
+  padding: 10px;
+  border: 1px solid black;
+  .project-image {
+    max-width: 500px;
+    max-height: 300px;
+  }
+}
