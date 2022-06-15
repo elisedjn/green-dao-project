@@ -1,5 +1,6 @@
 import React from 'react';
 import ProjectCard from '../Components/Molecules/ProjectCard';
+import Navbar from '../Components/Molecules/Navbar';
 import { Project } from '../utils/types';
 import './Home.scss';
 
@@ -32,10 +33,15 @@ const Home = () => {
   ];
   return (
     <div className='home-page'>
+      <div>
+        <Navbar />
+      </div>
       <h1>Welcome</h1>
-      {sampleProjects.map((project, index) => (
-        <ProjectCard project={project} key={index} /> //key is mandatory when rendering a component inside a map
-      ))}
+      <div className='card-grid'>
+        {sampleProjects.map((project, index) => (
+          <ProjectCard project={project} key={index} /> //key is mandatory when rendering a component inside a map
+          ))}
+      </div>
     </div>
   );
 };

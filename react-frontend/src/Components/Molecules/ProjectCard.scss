@@ -1,9 +1,21 @@
 .project-card {
   width: 650px;
-  padding: 10px;
-  border: 1px solid black;
+  margin: 10px;
+  border-radius: 25px;
+  box-shadow: 2.5px 2.5px 8px rgba(0, 0, 0, 0.2);
+
+  .project-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
   .project-image {
-    max-width: 500px;
-    max-height: 300px;
+    width: 100%;
+    min-height: 300px;
+    border-radius: 25px 25px 0px 0px;
+    padding: 0;
+
   }
 }

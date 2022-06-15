@@ -12,6 +12,7 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project }) => {
   return (
     <div className='project-card'>
       <img src={image} alt={title} className='project-image' />
+      <div className='project-content'>
       <h3>{title}</h3>
       <p>{description}</p>
       <Button
@@ -21,6 +22,7 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project }) => {
       >
         Donate for this project
       </Button>
+      </div>
     </div>
   );
 };

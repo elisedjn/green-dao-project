@@ -1,3 +1,9 @@
 .home-page{
   padding: 24px;
+
+  .card-grid {
+      display: flex;
+      justify-content: space-between;
+
+    }
 }
