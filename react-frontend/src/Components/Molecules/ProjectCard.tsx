@@ -14,15 +14,15 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project }) => {
     <div className='project-card'>
       <img src={image} alt={title} className='project-image' />
       <div className='project-content'>
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <Button
-        onClick={() => console.log(`Voted for project #${id}`)}
-        color={id === 0 ? 'secondary' : 'primary'} //We select the secondary color for the button with id 0
-        outlined={id === 1} // The button will be outlined only if the project id is 1
-      >
-        Donate for this project
-      </Button>
+        <h3>{title}</h3>
+        <p>{description}</p>
+        <Button
+          onClick={() => console.log(`Voted for project #${id}`)}
+          color={id === 0 ? 'secondary' : 'primary'} //We select the secondary color for the button with id 0
+          variant={id === 1 ? 'outlined' : 'contained'} // The button will be outlined only if the project id is 1
+        >
+          Donate for this project
+        </Button>
       </div>
     </div>
   );

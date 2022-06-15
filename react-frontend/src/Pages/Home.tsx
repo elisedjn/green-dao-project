@@ -36,6 +36,7 @@ const Home = () => {
   ];
   return (
     <div className='home-page'>
+      <Navbar />
       <div className='dao-description'>
         <p>
           Short sweet description of the DAO without getting too deep on to make it
