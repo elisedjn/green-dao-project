@@ -1,4 +1,7 @@
 import React from 'react';
+import Button from '../Components/Atoms/Button';
+import Subtitle from '../Components/Atoms/Subtitle';
+import ImpactCard from '../Components/Molecules/ImpactCard';
 import ProjectCard from '../Components/Molecules/ProjectCard';
 import { Project } from '../utils/types';
 import './Home.scss';
@@ -32,10 +35,43 @@ const Home = () => {
   ];
   return (
     <div className='home-page'>
-      <h1>Welcome</h1>
-      {sampleProjects.map((project, index) => (
-        <ProjectCard project={project} key={index} /> //key is mandatory when rendering a component inside a map
-      ))}
+      <div className='dao-description'>
+        <p>
+          Short sweet description of the DAO without getting too deep on to make it
+          approachable for people that don’t know much about crypto but also touch on the
+          benefits of donating more to become a full member with proposal and voting
+          rights
+        </p>
+        <p>
+          Find a way to creatively display this info so it’s not too text heavy neque, a
+          venenatis ante mattis sit amet. Pellentesque ut magna eget tortor mollis lacinia
+          quis quis massa.
+        </p>
+        <div className='join-btn'>
+          <Button onClick={() => console.log('Join!')}>Join ENVIDAO</Button>
+        </div>
+      </div>
+
+      <div className='highlighted-projects'>
+        <Subtitle>Currently impacting these Projects</Subtitle>
+        <div className='projects-list'>
+          {sampleProjects.map((project, index) => (
+            <ProjectCard project={project} key={index} /> //key is mandatory when rendering a component inside a map
+          ))}
+        </div>
+        <Button onClick={() => console.log('contribute')}>Contribute</Button>
+      </div>
+
+      <div className='dao-impact'>
+        <Subtitle>ENVIDAO impact</Subtitle>
+        <ImpactCard
+          balance={10}
+          members={20}
+          projectsContributed={30}
+          donators={100}
+          alreadySent={50}
+        />
+      </div>
     </div>
   );
 };

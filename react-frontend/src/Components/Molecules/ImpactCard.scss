@@ -1,0 +1,27 @@
+.impact-card {
+  .first-line, .second-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    .one-element{
+      padding: 20px;
+      h4 {
+        font-size: 48px;
+        margin: 0px;
+        color:#FF8800;
+        font-family: 'Montserrat', sans-serif;
+      }
+      h5 {
+        font-size: 24px;
+        margin: 0px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .first-line{
+    margin-bottom: 30px;
+  }
+}
+

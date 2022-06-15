@@ -1,0 +1,21 @@
+.circular-progress-with-label{
+  position: relative; 
+  display: inline-flex;
+  .progress-label{
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 32px;
+    span {
+      margin-top: 6px;
+      margin-left: 4px;
+      font-size: 12px;
+    }
+  }
+}
