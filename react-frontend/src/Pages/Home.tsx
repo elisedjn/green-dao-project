@@ -3,6 +3,7 @@ import Button from '../Components/Atoms/Button';
 import Subtitle from '../Components/Atoms/Subtitle';
 import ImpactCard from '../Components/Molecules/ImpactCard';
 import ProjectCard from '../Components/Molecules/ProjectCard';
+import Navbar from '../Components/Molecules/Navbar';
 import { Project } from '../utils/types';
 import './Home.scss';
 
