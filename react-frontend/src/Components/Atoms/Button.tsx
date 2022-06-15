@@ -18,7 +18,7 @@ const Button: React.FC<ButtonType> = ({
   // by default, outlined will be contained and color will be primary
   // children will be the value we put inbetween the Button tags <Button>This is the children</Button>
   return (
-    <MUIButton className='button' onClick={onClick} variant={variant} color={color}>
+    <MUIButton className='DAO-button' onClick={onClick} variant={variant} color={color}>
       {children}
     </MUIButton>
   );
