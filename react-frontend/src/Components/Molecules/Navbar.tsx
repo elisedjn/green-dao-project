@@ -3,13 +3,37 @@ import './Navbar.scss';
 import Button from '../Atoms/Button';
 import { Link } from 'react-router-dom';
 
-const Navbar: React.FC<{}> = () => {
+type NavbarProps = {
+  onMemberPage?: boolean;
+};
+
+const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
   return (
     <div className='navbar'>
-      <h3>ENVIDAO</h3>
+      <Link to='/' className='home-link'>
+        <h3>ENVIDAO</h3>
+      </Link>
       <div className='nav-links'>
-      <Link to="/member">Go to Community Page</Link>
-      <Button onClick={() => console.log('contributing')}>Contribute</Button>
+        <Button
+          className='navbar-btn'
+          onClick={() => console.log('contributing')}
+          color='primary'
+        >
+          Contribute
+        </Button>
+        {onMemberPage ? (
+          <Button
+            onClick={() => console.log('connect wallet')}
+            variant='text'
+            className='link'
+          >
+            Connect your wallet
+          </Button>
+        ) : (
+          <Link to='/member' className='link'>
+            Go to Community Page
+          </Link>
+        )}
       </div>
     </div>
   );

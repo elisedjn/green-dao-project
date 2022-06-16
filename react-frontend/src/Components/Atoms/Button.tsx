@@ -7,6 +7,7 @@ type ButtonType = {
   variant?: 'outlined' | 'text' | 'contained'; //This value is optional
   color?: 'primary' | 'secondary'; //This value is optional
   onClick: () => any;
+  className?: string;
 };
 
 const Button: React.FC<ButtonType> = ({
@@ -14,11 +15,17 @@ const Button: React.FC<ButtonType> = ({
   variant = 'contained',
   color = 'primary',
   children,
+  className = '',
 }) => {
   // by default, outlined will be contained and color will be primary
   // children will be the value we put inbetween the Button tags <Button>This is the children</Button>
   return (
-    <MUIButton className='DAO-button' onClick={onClick} variant={variant} color={color}>
+    <MUIButton
+      className={['DAO-button', className].join(' ')}
+      onClick={onClick}
+      variant={variant}
+      color={color}
+    >
       {children}
     </MUIButton>
   );
