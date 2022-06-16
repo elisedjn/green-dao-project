@@ -3,16 +3,47 @@
 
   .inner-homepage{
     padding: 24px;
+    padding-top: 50px;
+
+    .intro{
+      font-weight: lighter;
+      font-size: 28px;
+      max-width: 1200px;
+      margin: auto;
+      margin-bottom: 50px;
+    }
   
     .dao-description{
       text-align: left;
-      font-size: 25px;
+      font-size: 20px;
       max-width: 1200px;
       margin: auto;
-      margin-bottom: 48px;
-      .join-btn{
+      margin-bottom: 100px;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 24px;
+      .one-text{
+        max-width: 420px;
         text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        button{
+          margin-top: 20px;
+          font-size: 24px !important;
+        }
+
+        h5{
+          margin:0px;
+          padding:0px;
+          font-family: 'Montserrat', sans-serif;
+          font-size: 24px;
+        }
       }
+      
     }
 
     .highlighted-projects{
@@ -24,7 +55,6 @@
         align-items: stretch;
         justify-content: space-between;
         gap: 12px;
-        overflow-x: scroll ;
         margin-bottom: 30px;
       }
     }
@@ -32,6 +62,12 @@
     .dao-impact{
       max-width: 1200px;
       margin: auto;
+    }
+  }
+
+  @media screen and (max-width: 800px) {
+    .projects-list{
+      flex-wrap: wrap;
     }
   }
 }
