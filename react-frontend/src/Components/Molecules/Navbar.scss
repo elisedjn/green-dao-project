@@ -1,9 +1,36 @@
 .navbar {
-  height: 60px;
-  border-bottom: 0.5px solid #666;
+  height: 80px;
+  width: 100%;
+  opacity: 0.8;
   display: flex;
-  align-content: space-between;
+  justify-content: space-between;
   position: sticky;
   top: 0;
   z-index: 10000;
+
+  .nav-links{
+    text-decoration: none;
+
+
+  }
+
+  Link {
+    text-decoration: none;
+    margin-right: 10px;
+    color: 008000;
+  }
+
+  Button{
+    margin-left: 15px;
+    width: 10px;
+    height: 60px;
+    font-size: 10px;
+  }
+
+  h3 {
+    font-size: 30px;
+    display: inline;
+    height: 60px;
+    margin-bottom: 10px;
+  }
 }
