@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '../Components/Atoms/Button';
 import Subtitle from '../Components/Atoms/Subtitle';
 import ProjectCard from '../Components/Molecules/ProjectCard';
 import Navbar from '../Components/Molecules/Navbar';
 import { Project } from '../utils/types';
 import './MemberPage.scss';
+import ProjectForm from '../Components/Molecules/ProjectForm';
 
 const MemberPage = () => {
   const sampleProjects: Project[] = [
@@ -36,6 +37,8 @@ const MemberPage = () => {
     },
   ];
 
+  const [openProjectForm, setOpenProjectForm] = useState<boolean>(false);
+
   return (
     <div className='member-page'>
       <Navbar onMemberPage />
@@ -62,8 +65,13 @@ const MemberPage = () => {
             <ProjectCard project={project} key={index} /> //key is mandatory when rendering a component inside a map
           ))}
         </div>
-        <Button onClick={() => console.log('contribute')}>Propose Project</Button>
+        <Button onClick={() => setOpenProjectForm(true)}>Propose Project</Button>
       </div>
+      <ProjectForm
+        open={openProjectForm}
+        onSubmit={console.log}
+        handleClose={() => setOpenProjectForm(false)}
+      />
     </div>
   );
 };

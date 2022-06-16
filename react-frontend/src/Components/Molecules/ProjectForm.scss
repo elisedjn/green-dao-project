@@ -1,0 +1,63 @@
+.project-form {
+  .MuiDialog-paper {
+    border-radius: 25px !important;
+    padding: 20px !important;
+    * {
+      font-family: 'Open Sans',system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,  'Helvetica Neue', sans-serif !important;
+    }
+  }
+
+  .form-title{
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+  }
+
+  .form-fields {
+    padding-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .add-image {
+    width: 30%;
+    [type="file"] {
+      border: 0;
+      clip: rect(0, 0, 0, 0);
+      height: 1px;
+      overflow: hidden;
+      padding: 0;
+      position: absolute !important;
+      white-space: nowrap;
+      width: 1px;
+    }
+  
+    [type="file"] + label.btn-1 {
+      border-radius: 25px;
+      background: lightgray;
+      height: 100%;
+      width: 100%;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      outline: none;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+  
+    .btn-1 img{
+      width: 100%;
+    }
+  }
+
+  @media screen and (max-width: 600px) {
+    .form-fields{
+      flex-wrap: wrap;
+    }
+  }
+}
+
