@@ -7,9 +7,10 @@ import './ProjectCard.scss';
 
 type ProjectCardType = {
   project: Project;
+  allowVote?: boolean;
 };
 
-const ProjectCard: React.FC<ProjectCardType> = ({ project }) => {
+const ProjectCard: React.FC<ProjectCardType> = ({ project, allowVote }) => {
   const { image, title, description, id } = project;
 
   return (
@@ -21,9 +22,16 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project }) => {
       </CardContent>
       <CardActions className='project-bottom'>
         <div className='fade' />
-        <Link className='link' to=''>
-          See the project
-        </Link>
+
+        {allowVote ? (
+          <Button onClick={() => console.log(id)} variant='text' className='link'>
+            Vote for this project
+          </Button>
+        ) : (
+          <Link className='link' to=''>
+            See the project
+          </Link>
+        )}
       </CardActions>
     </Card>
   );

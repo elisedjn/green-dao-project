@@ -23,6 +23,19 @@
     .navbar-btn{
       padding: 12px 20px !important;
       font-size: 16px !important;
+    }
+    .link {
+      text-decoration: none;
+      color: #4F772D;
+      font-family: 'Montserrat', sans-serif !important;
+      font-size: 18px !important;
+      text-transform: uppercase !important;
+      padding:0px !important;
+      margin:0px !important;
+      &:hover{
+        color: #132A13;
+        background-color: transparent !important;
+      }
     }  
   }
 
