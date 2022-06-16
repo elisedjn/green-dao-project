@@ -3,6 +3,7 @@ export type Project = {
   image: string;
   description: string;
   title: string;
+  link: string;
 };
 
 export type Member = {
