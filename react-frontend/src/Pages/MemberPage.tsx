@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Button from '../Components/Atoms/Button';
 import Subtitle from '../Components/Atoms/Subtitle';
@@ -8,7 +7,6 @@ import { Project } from '../utils/types';
 import './MemberPage.scss';
 
 const MemberPage = () => {
-
   const sampleProjects: Project[] = [
     {
       id: 0,
@@ -37,7 +35,7 @@ const MemberPage = () => {
 
   return (
     <div className='member-page'>
-      <Navbar />
+      <Navbar onMemberPage />
       <div className='dao-rules'>
         <p>
           Short sweet description of the DAO without getting too deep on to make it
@@ -51,9 +49,9 @@ const MemberPage = () => {
           quis quis massa.sdkfaçlkfjaksfjãf
         </p>
       </div>
-        <div className='join-btn'>
-          <Button onClick={() => console.log('Join!')}>Join ENVIDAO</Button>
-        </div>
+      <div className='join-btn'>
+        <Button onClick={() => console.log('Join!')}>Join ENVIDAO</Button>
+      </div>
       <div className='highlighted-projects'>
         <Subtitle>Projects up for Proposal</Subtitle>
         <div className='projects-list'>
@@ -63,8 +61,8 @@ const MemberPage = () => {
         </div>
         <Button onClick={() => console.log('contribute')}>Propose Project</Button>
       </div>
-      </div>
-
-)};
+    </div>
+  );
+};
 
 export default MemberPage;

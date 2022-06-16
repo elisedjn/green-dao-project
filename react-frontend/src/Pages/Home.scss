@@ -1,35 +1,38 @@
 .home-page{
   text-align: center;
-  padding: 24px;
 
-  .dao-description{
-    text-align: left;
-    font-size: 25px;
-    max-width: 1200px;
-    margin: auto;
-    margin-bottom: 48px;
-    .join-btn{
-      text-align: center;
+  .inner-homepage{
+    padding: 24px;
+  
+    .dao-description{
+      text-align: left;
+      font-size: 25px;
+      max-width: 1200px;
+      margin: auto;
+      margin-bottom: 48px;
+      .join-btn{
+        text-align: center;
+      }
     }
-  }
 
-  .highlighted-projects{
-    max-width: 1200px;
-    margin: auto;
-    margin-bottom: 48px;
-    .projects-list {
-      display: flex;
-      align-items: stretch;
-      justify-content: space-between;
-      gap: 12px;
-      overflow-x: scroll ;
-      margin-bottom: 30px;
+    .highlighted-projects{
+      max-width: 1200px;
+      margin: auto;
+      margin-bottom: 48px;
+      .projects-list {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        gap: 12px;
+        overflow-x: scroll ;
+        margin-bottom: 30px;
+      }
     }
-  }
 
-  .dao-impact{
-    max-width: 1200px;
-    margin: auto;
+    .dao-impact{
+      max-width: 1200px;
+      margin: auto;
+    }
   }
 }
 
