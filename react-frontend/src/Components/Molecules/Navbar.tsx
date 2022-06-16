@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import './Navbar.scss';
 import Button from '../Atoms/Button';
 import { Link } from 'react-router-dom';
+import { GlobalContext } from '../../utils/GlobalContext';
 
 type NavbarProps = {
   onMemberPage?: boolean;
 };
 
 const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
+  const { isConnected } = useContext(GlobalContext);
+
   return (
     <div className='navbar'>
       <Link to='/' className='home-link'>
@@ -22,13 +25,17 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
           Contribute
         </Button>
         {onMemberPage ? (
-          <Button
-            onClick={() => console.log('connect wallet')}
-            variant='text'
-            className='link'
-          >
-            Connect your wallet
-          </Button>
+          isConnected ? (
+            <div>Your are connected!</div>
+          ) : (
+            <Button
+              onClick={() => console.log('connect wallet')}
+              variant='text'
+              className='link'
+            >
+              Connect your wallet
+            </Button>
+          )
         ) : (
           <Link to='/member' className='link'>
             Go to Community Page
