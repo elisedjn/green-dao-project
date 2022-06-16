@@ -8,3 +8,8 @@ export type Project = {
 export type Member = {
   address: string;
 };
+
+export type LinkType = {
+  children: string;
+  onClick: () => any;
+};
