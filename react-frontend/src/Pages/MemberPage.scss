@@ -1,0 +1,32 @@
+.member-page{
+
+
+  .highlighted-projects {
+    max-width: 1200px;
+    margin: auto;
+    margin-bottom: 48px;
+
+    .projects-list {
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 12px;
+      overflow-x: scroll;
+      margin-bottom: 30px;
+    }
+  }
+
+
+  .dao-rules {
+
+      max-height: 100px;
+      max-width: 90%;
+      overflow: scroll;
+
+    }
+
+
+
+
+
+}
