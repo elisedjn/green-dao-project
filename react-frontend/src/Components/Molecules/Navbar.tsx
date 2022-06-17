@@ -11,7 +11,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
   return (
     <div className='navbar'>
       <Link to='/' className='home-link'>
-        <h3>ENVIDAO</h3>
+        <h3>D2R</h3>
       </Link>
       <div className='nav-links'>
         <Button

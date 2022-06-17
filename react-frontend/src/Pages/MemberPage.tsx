@@ -69,7 +69,7 @@ const MemberPage = () => {
     <div className='member-page'>
       <Navbar onMemberPage />
       <div className='inner-page'>
-        <Subtitle>DAO Rules</Subtitle>
+        <Subtitle>Donate to Regenerate Rules</Subtitle>
         <div className='dao-rules'>
           <p>
             Short sweet description of the DAO without getting too deep on to make it
