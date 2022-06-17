@@ -5,13 +5,12 @@ import { Link } from 'react-router-dom';
 import PlanetIcon from '../Atoms/PlanetIcon';
 import { GlobalContext } from '../../utils/GlobalContext';
 
-
 type NavbarProps = {
   onMemberPage?: boolean;
 };
 
 const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
-  const { isConnected } = useContext(GlobalContext);
+  const { isConnected, connectWallet } = useContext(GlobalContext);
 
   return (
     <div className='navbar'>
@@ -20,7 +19,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
           <PlanetIcon />
         </div>
         <h3>D2R</h3>
-
       </Link>
       <div className='nav-links'>
         <Button
@@ -34,11 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
           isConnected ? (
             <div>Your are connected!</div>
           ) : (
-            <Button
-              onClick={() => console.log('connect wallet')}
-              variant='text'
-              className='link'
-            >
+            <Button onClick={connectWallet} variant='text' className='link'>
               Connect your wallet
             </Button>
           )

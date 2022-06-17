@@ -1,16 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { DAOImpact } from '../../utils/types';
 import CircularProgressWithLabel from '../Atoms/CircularProgressWithLabel';
 import './ImpactCard.scss';
 
-type ImpactCardProps = {
-  balance: number;
-  members: number;
-  projectsContributed: number;
-  donators: number;
-  alreadySent: number;
-};
-
-const ImpactCard: React.FC<ImpactCardProps> = ({
+const ImpactCard: React.FC<DAOImpact> = ({
   balance,
   members,
   projectsContributed,

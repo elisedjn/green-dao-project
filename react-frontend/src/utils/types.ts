@@ -15,3 +15,11 @@ export type LinkType = {
   children: string;
   onClick: () => any;
 };
+
+export type DAOImpact = {
+  balance: number;
+  members: number;
+  projectsContributed: number;
+  donators: number;
+  alreadySent: number;
+};
