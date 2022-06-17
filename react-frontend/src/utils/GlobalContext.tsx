@@ -19,7 +19,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const checkIfConnected = async () => {
     try {
       if (ethereum) {
-        ethereum.request({ method: 'eth_requestAccounts' });
+        await ethereum.request({ method: 'eth_requestAccounts' });
         const provider = new ethers.providers.Web3Provider(ethereum);
         const sgr1 = await provider.getSigner();
         let addr1 = await sgr1.getAddress();
