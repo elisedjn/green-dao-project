@@ -4,6 +4,7 @@ import Subtitle from '../Components/Atoms/Subtitle';
 import ImpactCard from '../Components/Molecules/ImpactCard';
 import ProjectCard from '../Components/Molecules/ProjectCard';
 import Navbar from '../Components/Molecules/Navbar';
+import Footer from '../Components/Molecules/Footer';
 import { Project } from '../utils/types';
 import './Home.scss';
 
@@ -92,6 +93,7 @@ const Home = () => {
           />
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

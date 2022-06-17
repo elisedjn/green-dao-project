@@ -3,6 +3,7 @@ import Button from '../Components/Atoms/Button';
 import Subtitle from '../Components/Atoms/Subtitle';
 import ProjectCard from '../Components/Molecules/ProjectCard';
 import Navbar from '../Components/Molecules/Navbar';
+import Footer from '../Components/Molecules/Footer';
 import { Project } from '../utils/types';
 import './MemberPage.scss';
 import ProjectForm from '../Components/Molecules/ProjectForm';
@@ -98,6 +99,7 @@ const MemberPage = () => {
           handleClose={() => setOpenProjectForm(false)}
         />
       </div>
+      <Footer />
     </div>
   );
 };
