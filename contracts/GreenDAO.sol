@@ -132,8 +132,10 @@ contract GreenDAO {
         return members[user].isMember;
     }
 
+    // rename this to 'canVote'?
     function hasPaidForCurrentRound(address user) public view returns (bool) {
         // check if user has paid for the current round
+        return members[user].votes >= 1;
     }
 
     function getMemberRemainingVotes(address user)
