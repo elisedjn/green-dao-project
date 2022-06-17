@@ -42,8 +42,9 @@ const Home = () => {
       <Navbar />
       <div className='inner-homepage'>
         <div className='intro'>
-          Small text (max 2 lines) that will give the main idea of the DAO, some nice and
-          catchy words that will make you want to continue reading the page.
+          Welcome to D2R! We are a non-profit organization with a mission
+          to drive positive envirnmental impact. Scroll down to learn about the
+          regenerative projects we support, and how you can get involved.
         </div>
         <Button onClick={() => console.log('contribute')}>Contribute</Button>
         <div className='highlighted-projects'>
