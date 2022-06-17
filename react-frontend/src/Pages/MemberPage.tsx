@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '../Components/Atoms/Button';
 import Subtitle from '../Components/Atoms/Subtitle';
 import ProjectCard from '../Components/Molecules/ProjectCard';
