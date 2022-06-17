@@ -3,13 +3,8 @@ export type Project = {
   image: string;
   description: string;
   title: string;
-<<<<<<< HEAD
   link?: string;
   address?: string;
-||||||| parent of 4e85c14 (init)
-=======
-  link: string;
->>>>>>> 4e85c14 (init)
 };
 
 export type Member = {
