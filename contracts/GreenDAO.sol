@@ -129,6 +129,7 @@ contract GreenDAO {
 
     function isMember(address user) public view returns (bool) {
         // check if user is part of the members
+        return members[user].isMember;
     }
 
     function hasPaidForCurrentRound(address user) public view returns (bool) {
