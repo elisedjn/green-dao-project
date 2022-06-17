@@ -5,7 +5,6 @@ export type Project = {
   title: string;
   link: string;
   address?: string;
-
 };
 
 export type Member = {

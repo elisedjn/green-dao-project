@@ -4,6 +4,7 @@ import Button from '../Atoms/Button';
 import { Link } from 'react-router-dom';
 import PlanetIcon from '../Atoms/PlanetIcon';
 
+
 type NavbarProps = {
   onMemberPage?: boolean;
 };
@@ -16,6 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
           <PlanetIcon />
         </div>
         <h3>D2R</h3>
+
       </Link>
       <div className='nav-links'>
         <Button
