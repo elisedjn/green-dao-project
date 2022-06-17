@@ -16,7 +16,7 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, allowVote }) => {
   return (
     <Card className='project-card'>
       <CardMedia component='img' height='300' image={image} alt={title} />
-      <CardContent className='project-content'>
+      <CardContent className={allowVote ? 'project-content big-card' : 'project-content'}>
         <h3>{title}</h3>
         <p>{description}</p>
       </CardContent>
