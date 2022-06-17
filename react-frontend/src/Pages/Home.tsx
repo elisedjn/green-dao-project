@@ -46,7 +46,6 @@ const Home = () => {
           Small text (max 2 lines) that will give the main idea of the DAO, some nice and
           catchy words that will make you want to continue reading the page.
         </div>
-        <Button onClick={() => console.log('contribute')}>Contribute</Button>
         <div className='highlighted-projects'>
           <Subtitle>Currently impacting these Projects</Subtitle>
           <div className='projects-list'>
@@ -83,7 +82,7 @@ const Home = () => {
           </div>
         </div>
         <div className='dao-impact'>
-          <Subtitle>ENVIDAO impact</Subtitle>
+          <Subtitle>Donate to Regenerate impact</Subtitle>
           <ImpactCard
             balance={10}
             members={20}
