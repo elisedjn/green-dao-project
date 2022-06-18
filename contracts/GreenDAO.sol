@@ -298,15 +298,22 @@ contract GreenDAO {
     }
 
     function getLastWinners() public view returns (Project[] memory) {
-        // returns the winners of the previous round (currentRound - 1)
-        // using rounds[roundId].winningProjects - this is an array of addresses
+        uint prevRoundId = (getCurrentRound() - 1);
+        Project[] memory previousWinners;
+        address[] winners = rounds[prevRoundId].winningProjects;
+        for (uint i = 0; i < winners.length; i ++) {
+          previousWinners.push(projects[prevRoundId][winners[i]]);
+        }
+        return previousWinners;
     }
 
     function getCurrentProjects() public view returns (Project[] memory) {
-        // returns the currentRound projects
         uint256 roundId = getCurrentRound();
-        // WARNING : This will return only an array of addresses, we need to return an array of Projects
         Project[] memory currentProjects;
+        address[] list = projectsPerRound[roundId];
+        for (uint i = 0; i < list.length; i ++) {
+          currentProjects.push(projects[roundId][list[i]]);
+        }
         return currentProjects;
     }
 
