@@ -154,7 +154,9 @@ contract GreenDAO {
         returns (uint256[] memory)
     {
         // check that the user is a member before to proceed
+        require(isMember(user), "address is not a member");
         // returns the projects the user has voted for (so we can show on front-end on the current projects if the user has already voted on some of them)
+        return members[user].hasVotedFor;
     }
 
     function getLastWinners() public view returns (Project[] memory) {
