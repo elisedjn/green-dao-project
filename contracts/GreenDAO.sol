@@ -104,8 +104,7 @@ contract GreenDAO {
 
     function addProject(
         string memory _data,
-        address _proposedRecipient,
-        address _proposedBy
+        address _proposedRecipient
     ) external {
         require(
             getCurrentRoundStatus() == RoundStatus.Propose,
@@ -306,7 +305,6 @@ contract GreenDAO {
         }
         return previousWinners;
     }
-
 
     function getCurrentProjects() public view returns (Project[] memory) {
         uint256 roundId = getCurrentRound();
