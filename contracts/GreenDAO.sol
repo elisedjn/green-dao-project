@@ -16,7 +16,6 @@ contract GreenDAO {
     uint256 immutable pricePerVote;
 
     struct Member {
-        bool isMember;
         uint256 votes;
         uint256[] roundsPaid;
         uint256[] hasVotedFor;
@@ -49,10 +48,10 @@ contract GreenDAO {
         owner = msg.sender;
         start = block.timestamp;
         token = _token;
-        // require(
-        //     pricePerVote > 10**IERC20(_token).decimals(),
-        //     "Price per vote too low"
-        // );
+        require(
+            pricePerVote > 10**IERC20(_token).decimals(),
+            "Price per vote too low"
+        );
         pricePerVote = _pricePerVote;
     }
 
@@ -69,33 +68,25 @@ contract GreenDAO {
         return RoundStatus.Vote;
     }
 
-    // merged with payMembership()
-    function donate(uint256 amount) public returns (uint256) {
-        // check if round open to donation
-        require(
-            getCurrentRoundStatus() == RoundStatus.Propose,
-            "Contributions are closed during voting phase. Please come back when the next round begins."
-        );
-        // transfer tokens from their address to ours
-        // SafeERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        // add membership and vote count for any donation above threshold to vote
-        if (amount >= pricePerVote) {
-            members[msg.sender].isMember = true;
-            members[msg.sender].votes += amount / pricePerVote;
-            return members[msg.sender].votes;
-        }
-        return 0;
-        // will this work to display a message to the donor, either:
-        // a) thanks, you have x voting credits for this round, or
-        // b) you can't vote but thanks for donating
+    function payMembership(uint256 amount) public {
+        // Check roundStatus == Propose
+        // Check that the minimum fee is reached
+        SafeERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        // Add a member to the members map
     }
 
-    function addProject(Project calldata project) external {
+    function addProject(Project project) external {
         // Check roundStatus == Propose
         // Check msg.sender is a Member (using isMember)
         // Check that the member has paid for the current round ??
         // Check that project.addr is not already associated to an existing project for this round
         // Add the project to the projects maps and projectPerRound map
+    }
+
+    function acceptDonation(uint256 amount) external {
+        // Merge with paymembership ?
+        // Check if msg.sender is a member. If so, add new votes if the fee per vote is reached
+        // Should the msg.sender be automatically added as a member if his donation > membership fee ?
     }
 
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
@@ -120,7 +111,7 @@ contract GreenDAO {
         // Loop over the winners to send the money (how should we distribute? Do we keep some funds for the DAO? How much?)
     }
 
-    function findWinners(uint256 roundId) internal returns (address[] memory) {
+    function findWinners(uint256 roundId) internal returns (address[]) {
         // Find the 3 current Projects the have the more votes
         // How should we deal if some projects have the same amount of votes ?
         // Put them in the rounds mapping (winningProjects)
@@ -129,13 +120,10 @@ contract GreenDAO {
 
     function isMember(address user) public view returns (bool) {
         // check if user is part of the members
-        return members[user].isMember;
     }
 
-    // rename this to 'canVote'?
     function hasPaidForCurrentRound(address user) public view returns (bool) {
         // check if user has paid for the current round
-        return members[user].votes >= 1;
     }
 
     function getMemberRemainingVotes(address user)
@@ -144,26 +132,18 @@ contract GreenDAO {
         returns (uint256)
     {
         // returns the remaining votes of that user (check that the user is a member before)
-        require(isMember(user), "Address is not a member");
-        return members[user].votes;
     }
 
-    function getMembersLastVotes(address user)
-        public
-        view
-        returns (uint256[] memory)
-    {
+    function getMembersLastVotes(address user) public view returns (uint256[]) {
         // check that the user is a member before to proceed
-        require(isMember(user), "address is not a member");
         // returns the projects the user has voted for (so we can show on front-end on the current projects if the user has already voted on some of them)
-        return members[user].hasVotedFor;
     }
 
-    function getLastWinners() public view returns (Project[] memory) {
+    function getLastWinners() public view returns (Project[]) {
         // returns the winners of the previous round (currentRound - 1)
     }
 
-    function getCurrentProjects() public view returns (Project[] memory) {
+    function getCurrentProjects() public view returns (Project[]) {
         // returns the currentRound projects
     }
 
