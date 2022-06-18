@@ -1,7 +1,13 @@
-const { expect } = require('chai');
+const chai = require('chai');
+const { BigNumber } = require('ethers');
 const { ethers } = require('hardhat');
+const { solidity } = require('ethereum-waffle');
 
-const pricePerVote = 40 * 10 ** 6;
+chai.use(solidity);
+
+const { expect, assert } = chai;
+
+const pricePerVote = BigNumber.from(10).pow(18).mul(40);
 
 describe('GreenDAO', function () {
   let contract;
@@ -19,12 +25,13 @@ describe('GreenDAO', function () {
     const GreenDAO = await ethers.getContractFactory('GreenDAO');
     const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote);
     await greenDAO.deployed();
+    contract = greenDAO;
     console.log('contract deployed', greenDAO.address);
   });
   it('Should store the token address', async function () {
-    assert.equal(contract.token(), tokenAddress);
+    assert.equal(await contract.token(), tokenAddress);
   });
   it('Should store the pricePerVote', async function () {
-    assert.equal(contract.pricePerVote(), pricePerVote);
+    expect(await contract.pricePerVote()).to.equal(pricePerVote);
   });
 });

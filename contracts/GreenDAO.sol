@@ -55,7 +55,7 @@ contract GreenDAO {
         start = block.timestamp;
         token = _token;
         require(
-            pricePerVote > 10**ERC20(_token).decimals(),
+            _pricePerVote > 10**ERC20(_token).decimals(),
             "Price per vote too low"
         );
         pricePerVote = _pricePerVote;
@@ -114,8 +114,9 @@ contract GreenDAO {
         require(isMember(msg.sender), "Address is not a member");
         uint256 roundId = getCurrentRound();
 
+        address emptyAddr;
         require(
-            projects[roundId][_proposedRecipient].proposedBy != 0x0,
+            projects[roundId][_proposedRecipient].proposedBy != emptyAddr,
             "This project has already been submited"
         );
 
@@ -136,8 +137,9 @@ contract GreenDAO {
         require(isMember(msg.sender), "Address is not a member");
 
         // Check that the project exist for this round
+        address emptyAddr;
         require(
-            projects[getCurrentRound()][projectAddress].proposedBy != 0x0,
+            projects[getCurrentRound()][projectAddress].proposedBy != emptyAddr,
             "This project is not part of the current round"
         );
 
@@ -189,54 +191,54 @@ contract GreenDAO {
 
     function findWinners(uint256 roundId) internal returns (address[] memory) {
         uint256 firstVotes;
-        uint256 nbOfFirst;
+        // uint256 nbOfFirst;
         uint256 secondVotes;
-        uint256 nbOfSecond;
+        // uint256 nbOfSecond;
         uint256 thirdVotes;
-        uint256 nbOfThird;
+        // uint256 nbOfThird;
         for (uint256 i = 0; i < projectsPerRound[roundId].length; i++) {
             address projectAddr = projectsPerRound[roundId][i];
             uint256 votes = projects[roundId][projectAddr].votes;
             if (votes == firstVotes) {
                 //Tie for first position
-                nbOfFirst++;
+                // nbOfFirst++;
             } else if (votes > firstVotes) {
                 // A new first is found!
                 // second become third
                 thirdVotes = secondVotes;
-                nbOfThird = nbOfSecond;
+                // nbOfThird = nbOfSecond;
                 //first become second
                 secondVotes = firstVotes;
-                nbOfSecond = nbOfFirst;
+                // nbOfSecond = nbOfFirst;
                 // new first setup
                 firstVotes = votes;
-                nbOfFirst = 1;
+                // nbOfFirst = 1;
             } else if (votes == secondVotes) {
                 // Tie for second position
-                nbOfSecond++;
+                // nbOfSecond++;
             } else if (votes > secondVotes) {
                 // A new second is found!
                 // second become third
                 thirdVotes = secondVotes;
-                nbOfThird = nbOfSecond;
+                // nbOfThird = nbOfSecond;
                 //new second setup
                 secondVotes = votes;
-                nbOfSecond = 1;
+                // nbOfSecond = 1;
             } else if (votes == thirdVotes) {
                 //Tie for third
-                thirdVotes++;
+                // nbOfThird++;
             } else if (votes > thirdVotes) {
                 //A new third is found!
                 thirdVotes = votes;
-                nbOfThird = 1;
+                // nbOfThird = 1;
             }
         }
 
-        address[] memory firstOnes = new address[](nbOfFirst);
+        address[] memory firstOnes = new address[](10);
         uint256 indexFirst;
-        address[] memory secondOnes = new address[](nbOfSecond);
+        address[] memory secondOnes = new address[](10);
         uint256 indexSecond;
-        address[] memory thirdOnes = new address[](nbOfThird);
+        address[] memory thirdOnes = new address[](10);
         uint256 indexThird;
         for (uint256 i = 0; i < projectsPerRound[roundId].length; i++) {
             address projectAddr = projectsPerRound[roundId][i];
@@ -253,19 +255,17 @@ contract GreenDAO {
             }
         }
 
-        address[] memory allWinnersSorted = new address[](
-            nbOfFirst + nbOfSecond + nbOfThird
-        );
+        address[] memory allWinnersSorted = new address[](30);
         uint256 winnerIndex;
-        for (uint256 i = 0; i < nbOfFirst; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             allWinnersSorted[winnerIndex] = firstOnes[i];
             winnerIndex++;
         }
-        for (uint256 i = 0; i < nbOfSecond; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             allWinnersSorted[winnerIndex] = secondOnes[i];
             winnerIndex++;
         }
-        for (uint256 i = 0; i < nbOfThird; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             allWinnersSorted[winnerIndex] = thirdOnes[i];
             winnerIndex++;
         }
@@ -290,10 +290,11 @@ contract GreenDAO {
     function getMembersLastVotes(address user)
         public
         view
-        returns (uint256[] memory)
+        returns (address[] memory)
     {
         require(isMember(user), "Address is not a member");
-        return members[user].hasVotedFor;
+        address[] memory lastVotes = members[user].hasVotedFor;
+        return lastVotes;
     }
 
     function getLastWinners() public view returns (Project[] memory) {
@@ -305,11 +306,12 @@ contract GreenDAO {
         // returns the currentRound projects
         uint256 roundId = getCurrentRound();
         // WARNING : This will return only an array of addresses, we need to return an array of Projects
-        return projectsPerRound[roundId];
+        Project[] memory currentProjects;
+        return currentProjects;
     }
 
     function getActualBalance() public view returns (uint256) {
-        uint256 balance = IERC20.balanceOf(address(this));
+        uint256 balance = IERC20(token).balanceOf(address(this));
         return balance;
     }
 }
