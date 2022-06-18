@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract GreenDAO {
     using SafeERC20 for IERC20;
-    uint256 public constant ROUND_DURATION = 14 days;
-    uint256 public constant PROPOSAL_DURATION = 10 days;
+    uint256 public constant ROUND_DURATION = 4 weeks;
+    uint256 public constant PROPOSAL_DURATION = 3 weeks;
 
     address owner;
     uint256 public start;
@@ -22,7 +22,6 @@ contract GreenDAO {
     }
     struct Project {
         string data;
-        address addr;
         uint256 votes;
         address proposedBy;
     }
@@ -76,34 +75,64 @@ contract GreenDAO {
     }
 
     function payMembership(uint256 amount) public {
-        // Check roundStatus == Propose
-        // Check that the minimum fee is reached
         SafeERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        // Add a member to the members map
+        rounds[getCurrentRound()].balance += amount;
+        totalCollected += amount;
+        if (
+            getCurrentRoundStatus() == RoundStatus.Propose &&
+            amount >= pricePerVote
+        ) {
+            if (!isMember(msg.sender)) {
+                activeMembers.push(msg.sender);
+                //Create a new Member
+                members[msg.sender].roundsPaid.push(getCurrentRound());
+            }
+            members[msg.sender].votes += amount / pricePerVote;
+
+            return members[msg.sender].votes;
+        }
+
+        anonymousDonors++;
+        return 0;
     }
 
-    function addProject(Project project) external {
-        // Check roundStatus == Propose
-        // Check msg.sender is a Member (using isMember)
-        // Check that the member has paid for the current round ??
-        // Check that project.addr is not already associated to an existing project for this round
-        // Add the project to the projects maps and projectPerRound map
-    }
+    function addProject(
+        string memory _data,
+        address _proposedRecipient,
+        address _proposedBy
+    ) external {
+        require(
+            getCurrentRoundStatus() == RoundStatus.Propose,
+            "Proposal are not open currently"
+        );
+        require(isMember(msg.sender), "Address is not a member");
+        uint256 roundId = getCurrentRoundId();
+        require(
+            !projects[roundId][_proposedRecipient],
+            "This project has already been submited"
+        );
 
-    function acceptDonation(uint256 amount) external {
-        // Merge with paymembership ?
-        // Check if msg.sender is a member. If so, add new votes if the fee per vote is reached
-        // Should the msg.sender be automatically added as a member if his donation > membership fee ?
+        Project memory project;
+        project.data = _data;
+        project.proposedBy = msg.sender;
+
+        projects[roundId][_proposedRecipient] = project;
+        projectsPerRound[roundId].push(_proposedRecipient);
     }
 
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
-        // Check msg.sender isMember
-        // Check roundStatus = Vote
-        // Check project is part of current round
-        // Check member has paid for this round (calling hasPaidForCurrentRound) ?
-        // Substract nbOfVote vote to the member
-        // Add the project address to the member hasVotedFor array
-        // Add nbOfVote vote to the project
+        require(
+            getCurrentRoundStatus() == RoundStatus.Vote,
+            "Votes are not currently opened"
+        );
+        require(isMember(msg.sender), "Address is not a member");
+
+        // Check that the project exist for this round
+        require(projects[getCurrentRound()][projectAddress].proposedBy != '0x', "This project is not part of the current round")
+
+        members[msg.sender].votes -= nbOfVote;
+        members[msg.sender].hasVotedFor.push(projectAddress);
+        projects[getCurrentRoundId()][projectAddress].votes += nbOfVote;
     }
 
     function distributeToProjects() external {
@@ -116,8 +145,11 @@ contract GreenDAO {
             !rounds[roundId].hasBeenPaid,
             "Donation already done for this round"
         );
+        require(roundId != getCurrentRound(), "This round is not finished yet");
         rounds[roundId].hasBeenPaid = true;
         uint256[] winners = findWinners(roundId);
+        rounds[roundId].winningProjects = winners;
+        totalProjects += winners.length;
 
         //Get the number of votes for all the winner projects
         uint256 totalVotesForWinners;
@@ -220,11 +252,15 @@ contract GreenDAO {
     }
 
     function isMember(address user) public view returns (bool) {
-        // check if user is part of the members
-    }
-
-    function hasPaidForCurrentRound(address user) public view returns (bool) {
-        // check if user has paid for the current round
+        bool hasPaidForCurrentRound;
+        uint256 currentRound = getCurrentRound();
+        bool answer;
+        for (uint256 i = 0; i < members[user].roundsPaid.length; i++) {
+            if (members[user].roundsPaid[i] == currentRound) {
+                hasPaidForCurrentRound = true;
+            }
+        }
+        return isRegistered && hasPaidForCurrentRound;
     }
 
     function getMemberRemainingVotes(address user)
@@ -232,12 +268,13 @@ contract GreenDAO {
         view
         returns (uint256)
     {
-        // returns the remaining votes of that user (check that the user is a member before)
+        require(isMember(user), "Address is not a member");
+        return members[user].votes;
     }
 
     function getMembersLastVotes(address user) public view returns (uint256[]) {
-        // check that the user is a member before to proceed
-        // returns the projects the user has voted for (so we can show on front-end on the current projects if the user has already voted on some of them)
+        require(isMember(user), "Address is not a member");
+        return members[user].hasVotedFor;
     }
 
     function getLastWinners() public view returns (Project[]) {
@@ -246,14 +283,9 @@ contract GreenDAO {
 
     function getCurrentProjects() public view returns (Project[]) {
         // returns the currentRound projects
-    }
-
-    function getRoundStatus()
-        public
-        view
-        returns (bool voteAllowed, uint256 currentRoundTimestamp)
-    {
-        // returns if the vote is currently allowed (so we will be able to know at which part of the round we are) and the timestamp when the current round has started (so we can show something like 'XX days left to propose a project' or 'XX days left to vote')
+        uint256 roundId = getCurrentRoundId();
+        // WARNING : This will return only an array of addresses, we need to return an array of Projects
+        return projectsPerRound[roundId];
     }
 
     function getActualBalance() public view returns (uint256) {
@@ -261,6 +293,7 @@ contract GreenDAO {
         return balance;
     }
 
+    //Maybe this is useless
     function getTotalVotesForARound(roundId) public view returns (uint256) {
         uint256 totalVotes;
         for (uint256 i = 0; i < projectsPerRound[roundId]; i++) {
