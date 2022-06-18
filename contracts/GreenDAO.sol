@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-// pragma solidity ^0.8.0;
+pragma solidity ^0.8.0;
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -18,7 +18,7 @@ contract GreenDAO {
 
     struct Member {
         uint256 votes;
-        uint256[] roundsPaid;
+        uint256 lastRoundPaid;
         address[] hasVotedFor;
     }
     struct Project {
@@ -39,7 +39,6 @@ contract GreenDAO {
     }
     struct Round {
         bool hasBeenPaid;
-        uint256 moneyCollected;
         address[] winningProjects;
         uint256 balance;
     }
@@ -47,9 +46,9 @@ contract GreenDAO {
 
     //DAO Info
     uint256 public totalCollected;
-    uint256 public totalProjects;
-    address[] public activeMembers;
-    uint256 public anonymousDonors;
+    uint256 public totalPaidProjects;
+    mapping(address => bool) public DAOMembers;
+    uint256 public anonymousDonations;
 
     constructor(address _token, uint256 _pricePerVote) {
         owner = msg.sender;
@@ -75,25 +74,31 @@ contract GreenDAO {
         return RoundStatus.Vote;
     }
 
-    function payMembership(uint256 amount) public returns (uint256) {
-        SafeERC20.safeTransferFrom(token, msg.sender, address(this), amount);
-        rounds[getCurrentRound()].balance += amount;
+    function donate(uint256 amount) public returns (uint256) {
+        SafeERC20.safeTransferFrom(
+            IERC20(token),
+            msg.sender,
+            address(this),
+            amount
+        );
+        uint256 currentRound = getCurrentRound();
+        rounds[currentRound].balance += amount;
         totalCollected += amount;
         if (
             getCurrentRoundStatus() == RoundStatus.Propose &&
             amount >= pricePerVote
         ) {
             if (!isMember(msg.sender)) {
-                activeMembers.push(msg.sender);
-                //Create a new Member
-                members[msg.sender].roundsPaid.push(getCurrentRound());
+                DAOMembers[msg.sender] = true;
+                members[msg.sender].lastRoundPaid = currentRound;
+                members[msg.sender].votes = 0;
             }
             members[msg.sender].votes += amount / pricePerVote;
 
             return members[msg.sender].votes;
         }
 
-        anonymousDonors++;
+        anonymousDonations++;
         return 0;
     }
 
@@ -104,12 +109,13 @@ contract GreenDAO {
     ) external {
         require(
             getCurrentRoundStatus() == RoundStatus.Propose,
-            "Proposal are not open currently"
+            "Proposals are closed for this round"
         );
         require(isMember(msg.sender), "Address is not a member");
         uint256 roundId = getCurrentRound();
+
         require(
-            projects[roundId][_proposedRecipient].proposedBy != 0x00,
+            projects[roundId][_proposedRecipient].proposedBy != 0x0,
             "This project has already been submited"
         );
 
@@ -118,19 +124,20 @@ contract GreenDAO {
         project.proposedBy = msg.sender;
 
         projects[roundId][_proposedRecipient] = project;
-        projectsPerRound[roundId].push(_proposedRecipient);
+        uint256 arrayLength = projectsPerRound[roundId].length;
+        projectsPerRound[roundId][arrayLength] = _proposedRecipient;
     }
 
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
         require(
             getCurrentRoundStatus() == RoundStatus.Vote,
-            "Votes are not currently opened"
+            "Voting phase is not yet started"
         );
         require(isMember(msg.sender), "Address is not a member");
 
         // Check that the project exist for this round
         require(
-            projects[getCurrentRound()][projectAddress].proposedBy != 0x00,
+            projects[getCurrentRound()][projectAddress].proposedBy != 0x0,
             "This project is not part of the current round"
         );
 
@@ -149,13 +156,13 @@ contract GreenDAO {
     function distributeToProjects(uint256 roundId) public {
         require(
             !rounds[roundId].hasBeenPaid,
-            "Donation already done for this round"
+            "Donations for this round have already been sent"
         );
         require(roundId != getCurrentRound(), "This round is not finished yet");
         rounds[roundId].hasBeenPaid = true;
         address[] memory winners = findWinners(roundId);
         rounds[roundId].winningProjects = winners;
-        totalProjects += winners.length;
+        totalPaidProjects += winners.length;
 
         //Get the number of votes for all the winner projects
         uint256 totalVotesForWinners;
@@ -171,7 +178,12 @@ contract GreenDAO {
             uint256 votes = projects[roundId][project].votes;
             uint256 amount = rounds[roundId].balance *
                 (votes / totalVotesForWinners);
-            SafeERC20.safeTransferFrom(token, address(this), project, amount);
+            SafeERC20.safeTransferFrom(
+                IERC20(token),
+                address(this),
+                project,
+                amount
+            );
         }
     }
 
@@ -244,29 +256,26 @@ contract GreenDAO {
         address[] memory allWinnersSorted = new address[](
             nbOfFirst + nbOfSecond + nbOfThird
         );
+        uint256 winnerIndex;
         for (uint256 i = 0; i < nbOfFirst; i++) {
-            allWinnersSorted.push(firstOnes[i]);
+            allWinnersSorted[winnerIndex] = firstOnes[i];
+            winnerIndex++;
         }
         for (uint256 i = 0; i < nbOfSecond; i++) {
-            allWinnersSorted.push(secondOnes[i]);
+            allWinnersSorted[winnerIndex] = secondOnes[i];
+            winnerIndex++;
         }
         for (uint256 i = 0; i < nbOfThird; i++) {
-            allWinnersSorted.push(thirdOnes[i]);
+            allWinnersSorted[winnerIndex] = thirdOnes[i];
+            winnerIndex++;
         }
 
         return allWinnersSorted;
     }
 
     function isMember(address user) public view returns (bool) {
-        bool hasPaidForCurrentRound;
         uint256 currentRound = getCurrentRound();
-        bool answer;
-        for (uint256 i = 0; i < members[user].roundsPaid.length; i++) {
-            if (members[user].roundsPaid[i] == currentRound) {
-                hasPaidForCurrentRound = true;
-            }
-        }
-        return hasPaidForCurrentRound;
+        return members[user].lastRoundPaid == currentRound;
     }
 
     function getMemberRemainingVotes(address user)
@@ -289,6 +298,7 @@ contract GreenDAO {
 
     function getLastWinners() public view returns (Project[] memory) {
         // returns the winners of the previous round (currentRound - 1)
+        // using rounds[roundId].winningProjects - this is an array of addresses
     }
 
     function getCurrentProjects() public view returns (Project[] memory) {
@@ -301,19 +311,5 @@ contract GreenDAO {
     function getActualBalance() public view returns (uint256) {
         uint256 balance = IERC20.balanceOf(address(this));
         return balance;
-    }
-
-    //Maybe this is useless
-    function getTotalVotesForARound(uint256 roundId)
-        public
-        view
-        returns (uint256)
-    {
-        uint256 totalVotes;
-        for (uint256 i = 0; i < projectsPerRound[roundId]; i++) {
-            address project = projectsPerRound[roundId][i];
-            totalVotes += projects[roundId][project].votes;
-        }
-        return totalVotes;
     }
 }
