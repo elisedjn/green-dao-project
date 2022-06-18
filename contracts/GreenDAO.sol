@@ -144,6 +144,8 @@ contract GreenDAO {
         returns (uint256)
     {
         // returns the remaining votes of that user (check that the user is a member before)
+        require(isMember(user), "Address is not a member");
+        return members[user].votes;
     }
 
     function getMembersLastVotes(address user)
