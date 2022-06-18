@@ -38,6 +38,8 @@ contract GreenDAO {
         Vote
     }
     struct Round {
+        // need a way for the end of one round to trigger the next
+        bool started;
         bool hasBeenPaid;
         address[] winningProjects;
         uint256 balance;
@@ -53,6 +55,10 @@ contract GreenDAO {
     constructor(address _token, uint256 _pricePerVote) {
         owner = msg.sender;
         start = block.timestamp;
+        // initiate first round
+        // need to repeat this line inside another fx to trigger next round
+        // need logic to close the current round, trigger vote calculation
+        rounds[0].started = true;
         token = _token;
         require(
             _pricePerVote > 10**ERC20(_token).decimals(),
