@@ -104,8 +104,7 @@ contract GreenDAO {
 
     function addProject(
         string memory _data,
-        address _proposedRecipient,
-        address _proposedBy
+        address _proposedRecipient
     ) external {
         require(
             getCurrentRoundStatus() == RoundStatus.Propose,
@@ -298,15 +297,22 @@ contract GreenDAO {
     }
 
     function getLastWinners() public view returns (Project[] memory) {
-        // returns the winners of the previous round (currentRound - 1)
-        // using rounds[roundId].winningProjects - this is an array of addresses
+        uint prevRoundId = (getCurrentRound() - 1);
+        address[] memory winners = rounds[prevRoundId].winningProjects;
+        Project[] memory previousWinners = new Project[](winners.length);
+        for (uint i = 0; i < winners.length; i ++) {
+          previousWinners[i] = (projects[prevRoundId][winners[i]]);
+        }
+        return previousWinners;
     }
 
     function getCurrentProjects() public view returns (Project[] memory) {
-        // returns the currentRound projects
         uint256 roundId = getCurrentRound();
-        // WARNING : This will return only an array of addresses, we need to return an array of Projects
-        Project[] memory currentProjects;
+        address[] memory list = projectsPerRound[roundId];
+        Project[] memory currentProjects = new Project[](list.length);
+        for (uint i = 0; i < list.length; i ++) {
+          currentProjects[i] = (projects[roundId][list[i]]);
+        }
         return currentProjects;
     }
 
