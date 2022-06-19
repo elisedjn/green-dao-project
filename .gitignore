@@ -4,3 +4,6 @@
 
 /react-frontend/node_modules
 /react-frontend/.env
+
+/cache
+/artifacts
