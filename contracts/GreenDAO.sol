@@ -134,10 +134,10 @@ contract GreenDAO {
     }
 
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
-        require(
-            getCurrentRoundStatus() == RoundStatus.Vote,
-            "Voting phase is not yet started"
-        );
+        // require(
+        //     getCurrentRoundStatus() == RoundStatus.Vote,
+        //     "Voting phase is not yet started"
+        // );
         require(isMember(msg.sender), "Address is not a member");
 
         // Check that the project exist for this round
@@ -191,6 +191,16 @@ contract GreenDAO {
                 amount
             );
         }
+    }
+
+    // added this fx to facilitate testing
+    function getCurrentVoteCount(address project)
+        public
+        view
+        returns (uint256 votes)
+    {
+        uint roundId = getCurrentRound();
+        return projects[roundId][project].votes;
     }
 
     function findWinners(uint256 roundId) internal returns (address[] memory) {
