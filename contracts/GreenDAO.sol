@@ -39,7 +39,8 @@ contract GreenDAO {
     }
     struct Round {
         // need a way for the end of one round to trigger the next
-        bool started;
+        // ELISE : We do not need that information, this is calculated by getCurrentRoundStatus and getCurrentRound
+        // bool started;
         bool hasBeenPaid;
         address[] winningProjects;
         uint256 balance;
@@ -58,7 +59,8 @@ contract GreenDAO {
         // initiate first round
         // need to repeat this line inside another fx to trigger next round
         // need logic to close the current round, trigger vote calculation
-        rounds[0].started = true;
+        // ELISE : We do not need to initiate this mapping here
+        // rounds[0].started = true;
         token = _token;
         require(
             _pricePerVote > 10**ERC20(_token).decimals(),
@@ -69,7 +71,7 @@ contract GreenDAO {
 
     function getCurrentRound() public view returns (uint256) {
         uint256 duration = block.timestamp - start;
-        return duration / ROUND_DURATION;
+        return (duration / ROUND_DURATION) + 1;
     }
 
     function getCurrentRoundStatus() public view returns (RoundStatus) {
@@ -108,21 +110,17 @@ contract GreenDAO {
         return 0;
     }
 
-    function addProject(
-        string memory _data,
-        address _proposedRecipient,
-        address _proposedBy
-    ) external {
+    function addProject(string memory _data, address _proposedRecipient)
+        external
+    {
         require(
             getCurrentRoundStatus() == RoundStatus.Propose,
             "Proposals are closed for this round"
         );
         require(isMember(msg.sender), "Address is not a member");
         uint256 roundId = getCurrentRound();
-
-        address emptyAddr;
         require(
-            projects[roundId][_proposedRecipient].proposedBy != emptyAddr,
+            projects[roundId][_proposedRecipient].proposedBy == address(0),
             "This project has already been submited"
         );
 
@@ -131,8 +129,7 @@ contract GreenDAO {
         project.proposedBy = msg.sender;
 
         projects[roundId][_proposedRecipient] = project;
-        uint256 arrayLength = projectsPerRound[roundId].length;
-        projectsPerRound[roundId][arrayLength] = _proposedRecipient;
+        projectsPerRound[roundId].push(_proposedRecipient);
     }
 
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
@@ -143,9 +140,9 @@ contract GreenDAO {
         require(isMember(msg.sender), "Address is not a member");
 
         // Check that the project exist for this round
-        address emptyAddr;
         require(
-            projects[getCurrentRound()][projectAddress].proposedBy != emptyAddr,
+            projects[getCurrentRound()][projectAddress].proposedBy ==
+                address(0),
             "This project is not part of the current round"
         );
 
@@ -304,20 +301,22 @@ contract GreenDAO {
     }
 
     function getLastWinners() public view returns (Project[] memory) {
-        // returns the winners of the previous round (currentRound - 1)
-        // using rounds[roundId].winningProjects - this is an array of addresses
+        uint256 prevRoundId = (getCurrentRound() - 1);
+        address[] memory winners = rounds[prevRoundId].winningProjects;
+        Project[] memory previousWinners = new Project[](winners.length);
+        for (uint256 i = 0; i < winners.length; i++) {
+            previousWinners[i] = (projects[prevRoundId][winners[i]]);
+        }
+        return previousWinners;
     }
 
     function getCurrentProjects() public view returns (Project[] memory) {
-        // returns the currentRound projects
         uint256 roundId = getCurrentRound();
-        // WARNING : This will return only an array of addresses, we need to return an array of Projects
-        Project[] memory currentProjects;
+        address[] memory list = projectsPerRound[roundId];
+        Project[] memory currentProjects = new Project[](list.length);
+        for (uint256 i = 0; i < list.length; i++) {
+            currentProjects[i] = (projects[roundId][list[i]]);
+        }
         return currentProjects;
-    }
-
-    function getActualBalance() public view returns (uint256) {
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        return balance;
     }
 }
