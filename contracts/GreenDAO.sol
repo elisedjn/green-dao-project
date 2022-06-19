@@ -119,6 +119,7 @@ contract GreenDAO {
         );
         require(isMember(msg.sender), "Address is not a member");
         uint256 roundId = getCurrentRound();
+
         require(
             projects[roundId][_proposedRecipient].proposedBy == address(0),
             "This project has already been submited"
