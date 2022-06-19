@@ -38,6 +38,9 @@ contract GreenDAO {
         Vote
     }
     struct Round {
+        // need a way for the end of one round to trigger the next
+        // ELISE : We do not need that information, this is calculated by getCurrentRoundStatus and getCurrentRound
+        // bool started;
         bool hasBeenPaid;
         address[] winningProjects;
         uint256 balance;
@@ -53,6 +56,11 @@ contract GreenDAO {
     constructor(address _token, uint256 _pricePerVote) {
         owner = msg.sender;
         start = block.timestamp;
+        // initiate first round
+        // need to repeat this line inside another fx to trigger next round
+        // need logic to close the current round, trigger vote calculation
+        // ELISE : We do not need to initiate this mapping here
+        // rounds[0].started = true;
         token = _token;
         require(
             _pricePerVote > 10**ERC20(_token).decimals(),
@@ -63,7 +71,7 @@ contract GreenDAO {
 
     function getCurrentRound() public view returns (uint256) {
         uint256 duration = block.timestamp - start;
-        return duration / ROUND_DURATION;
+        return (duration / ROUND_DURATION) + 1;
     }
 
     function getCurrentRoundStatus() public view returns (RoundStatus) {
@@ -122,8 +130,7 @@ contract GreenDAO {
         project.proposedBy = msg.sender;
 
         projects[roundId][_proposedRecipient] = project;
-        uint256 arrayLength = projectsPerRound[roundId].length;
-        projectsPerRound[roundId][arrayLength] = _proposedRecipient;
+        projectsPerRound[roundId].push(_proposedRecipient);
     }
 
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
@@ -312,10 +319,5 @@ contract GreenDAO {
             currentProjects[i] = (projects[roundId][list[i]]);
         }
         return currentProjects;
-    }
-
-    function getActualBalance() public view returns (uint256) {
-        uint256 balance = IERC20(token).balanceOf(address(this));
-        return balance;
     }
 }
