@@ -102,10 +102,9 @@ contract GreenDAO {
         return 0;
     }
 
-    function addProject(
-        string memory _data,
-        address _proposedRecipient
-    ) external {
+    function addProject(string memory _data, address _proposedRecipient)
+        external
+    {
         require(
             getCurrentRoundStatus() == RoundStatus.Propose,
             "Proposals are closed for this round"
@@ -113,9 +112,8 @@ contract GreenDAO {
         require(isMember(msg.sender), "Address is not a member");
         uint256 roundId = getCurrentRound();
 
-        address emptyAddr;
         require(
-            projects[roundId][_proposedRecipient].proposedBy != emptyAddr,
+            projects[roundId][_proposedRecipient].proposedBy == address(0),
             "This project has already been submited"
         );
 
@@ -136,9 +134,9 @@ contract GreenDAO {
         require(isMember(msg.sender), "Address is not a member");
 
         // Check that the project exist for this round
-        address emptyAddr;
         require(
-            projects[getCurrentRound()][projectAddress].proposedBy != emptyAddr,
+            projects[getCurrentRound()][projectAddress].proposedBy ==
+                address(0),
             "This project is not part of the current round"
         );
 
@@ -297,11 +295,11 @@ contract GreenDAO {
     }
 
     function getLastWinners() public view returns (Project[] memory) {
-        uint prevRoundId = (getCurrentRound() - 1);
+        uint256 prevRoundId = (getCurrentRound() - 1);
         address[] memory winners = rounds[prevRoundId].winningProjects;
         Project[] memory previousWinners = new Project[](winners.length);
-        for (uint i = 0; i < winners.length; i ++) {
-          previousWinners[i] = (projects[prevRoundId][winners[i]]);
+        for (uint256 i = 0; i < winners.length; i++) {
+            previousWinners[i] = (projects[prevRoundId][winners[i]]);
         }
         return previousWinners;
     }
@@ -310,8 +308,8 @@ contract GreenDAO {
         uint256 roundId = getCurrentRound();
         address[] memory list = projectsPerRound[roundId];
         Project[] memory currentProjects = new Project[](list.length);
-        for (uint i = 0; i < list.length; i ++) {
-          currentProjects[i] = (projects[roundId][list[i]]);
+        for (uint256 i = 0; i < list.length; i++) {
+            currentProjects[i] = (projects[roundId][list[i]]);
         }
         return currentProjects;
     }
