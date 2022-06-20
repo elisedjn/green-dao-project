@@ -126,10 +126,10 @@ contract GreenDAO {
     }
 
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
-        // require(
-        //     getCurrentRoundStatus() == RoundStatus.Vote,
-        //     "Voting phase is not yet started"
-        // );
+        require(
+            getCurrentRoundStatus() == RoundStatus.Vote,
+            "Voting phase is not yet started"
+        );
         require(isMember(msg.sender), "Address is not a member");
 
         // Check that the project exist for this round
