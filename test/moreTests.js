@@ -183,4 +183,28 @@ describe('GreenDAO', function () {
   describe('find and fund winning projects', () => {
     // Riley add here
   });
+    // calculate remaining votes
+  it('Should show the member number of votes decrease after voting', async function () {
+    //member.votes should decrease by nbOfVote a member uses to vote
+  });
+
+    //Last projects the member voted for
+  it('Should provide an array of projects the member voted', async function () {
+    // the number and addresss of members[member].hasVotedFor should equal lastVotes
+  });
+
+    //getCurrentProjects
+  it('Should provide the correct number of projects proposed for the current round', async function () {
+
+  });
+
+    //find winners
+  it('Should select winning projects by most votes recieved', async function () {
+    // 1st place votes > 2nd place votes > 3rd place votes
+  });
+    // distribute to projects
+  it('Should distribute funds to the winners of the corresponding round', async function () {
+    //number and addresses of winnning projects == number/addresses of projects that recieve funds
+  });
+
 });
