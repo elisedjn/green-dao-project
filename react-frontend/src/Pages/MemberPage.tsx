@@ -11,7 +11,8 @@ import { GlobalContext } from '../utils/GlobalContext';
 const MemberPage = () => {
   const [openProjectForm, setOpenProjectForm] = useState<boolean>(false);
 
-  const { currentProjects, submitNewProject } = useContext(GlobalContext);
+  const { currentProjects, submitNewProject, isMember, roundStatus, member, setAlert } =
+    useContext(GlobalContext);
 
   return (
     <div className='member-page'>
@@ -35,10 +36,23 @@ const MemberPage = () => {
           <Subtitle>Projects up for Proposal</Subtitle>
           <div className='projects-list'>
             {currentProjects.map((project, index) => (
-              <ProjectCard project={project} key={index} allowVote />
+              <ProjectCard project={project} key={index} inMemberPage member={member} />
             ))}
           </div>
-          <Button onClick={() => setOpenProjectForm(true)}>Propose a Project</Button>
+          {roundStatus === 'propose' && (
+            <Button
+              onClick={() =>
+                !isMember
+                  ? setAlert({
+                      open: true,
+                      description: 'You need to be a member to propose a project',
+                    })
+                  : setOpenProjectForm(true)
+              }
+            >
+              Propose a Project
+            </Button>
+          )}
         </div>
         <ProjectForm
           open={openProjectForm}

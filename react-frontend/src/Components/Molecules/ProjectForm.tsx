@@ -73,6 +73,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
     console.log('errors', errors);
     if (errors.length > 0) return;
     onSubmit(project);
+    handleClose();
   };
 
   return (
