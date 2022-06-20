@@ -1,0 +1,35 @@
+.vote-dialog {
+  .MuiDialog-paper {
+    border-radius: 25px !important;
+    padding: 20px !important;
+    * {
+      font-family: 'Open Sans',system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,  'Helvetica Neue', sans-serif !important;
+    }
+  }
+
+  .form-title{
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+  }
+
+  .vote-counter{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    .counter-btn {
+      padding: 0px !important;
+      min-width: 40px !important;
+    }
+    .minus-btn{
+      border-radius: 12px 0px 0px 12px !important;
+    }
+    .plus-btn{
+      border-radius: 0px 12px 12px 0px !important;
+    }
+    .vote-nb{
+      font-size: 24px;
+      font-family: 'Montserrat', sans-serif;
+    }
+  }
+}

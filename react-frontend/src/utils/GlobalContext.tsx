@@ -1,11 +1,14 @@
 import React, { createContext, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
-import { DAOImpact, Project } from './types';
+import { AlertInfo, DAOImpact, Member, Project } from './types';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { Alert, Snackbar } from '@mui/material';
 
 type GlobalContextType = {
   isConnected: boolean;
   isMember: boolean;
+  member: Member | null;
+  voteForProject: (projectAddress: string, nbVote: number) => Promise<void>;
   highlightedProjects: Project[];
   currentProjects: Project[];
   roundStatus: 'propose' | 'vote';
@@ -13,6 +16,7 @@ type GlobalContextType = {
   submitNewProject: (project: Project) => Promise<void>;
   connectWallet: () => Promise<void>;
   ourImpact: DAOImpact | null;
+  setAlert: React.Dispatch<React.SetStateAction<AlertInfo>>;
 };
 
 interface ContextProps {
@@ -22,6 +26,8 @@ interface ContextProps {
 export const GlobalContext = createContext<GlobalContextType>({
   isConnected: false,
   isMember: false,
+  member: null,
+  voteForProject: async () => {},
   highlightedProjects: [],
   currentProjects: [],
   roundStatus: 'propose',
@@ -29,66 +35,73 @@ export const GlobalContext = createContext<GlobalContextType>({
   submitNewProject: async () => {},
   connectWallet: async () => {},
   ourImpact: null,
+  setAlert: () => {},
 });
 
 const currentProjectsSample: Project[] = [
   {
-    address: '0x0',
+    address: '0x01',
     title: 'Proposal Project 1',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
     image:
       'https://images.theconversation.com/files/137600/original/image-20160913-4948-6fyxz.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=1200&h=900.0&fit=crop',
     link: '',
+    votes: 3,
   },
   {
-    address: '0x0',
+    address: '0x02',
     title: 'Proposal Project 2',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. ',
     image: 'https://storage.googleapis.com/pod_public/1300/120225.jpg',
     link: '',
+    votes: 2,
   },
   {
-    address: '0x0',
+    address: '0x03',
     title: 'Proposal Project 3',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
     image:
       'https://thumbs.dreamstime.com/b/large-group-african-safari-animals-wildlife-conservation-concept-174172993.jpg',
     link: '',
+    votes: 5,
   },
   {
-    address: '0x0',
+    address: '0x04',
     title: 'Proposal Project 1',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
     image:
       'https://images.theconversation.com/files/137600/original/image-20160913-4948-6fyxz.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=1200&h=900.0&fit=crop',
     link: '',
+    votes: 7,
   },
   {
-    address: '0x0',
+    address: '0x05',
     title: 'Proposal Project 2',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. ',
     image: 'https://storage.googleapis.com/pod_public/1300/120225.jpg',
     link: '',
+    votes: 10,
   },
   {
-    address: '0x0',
+    address: '0x06',
     title: 'Proposal Project 3',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
     image:
       'https://thumbs.dreamstime.com/b/large-group-african-safari-animals-wildlife-conservation-concept-174172993.jpg',
     link: '',
+    votes: 1,
   },
 ];
 
 const highlightedProjectsSample: Project[] = [
   {
-    address: '0x0',
+    address: '0x01',
     title: 'Sample Project 1',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
@@ -97,7 +110,7 @@ const highlightedProjectsSample: Project[] = [
     link: '',
   },
   {
-    address: '0x0',
+    address: '0x02',
     title: 'Sample Project 2',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. ',
@@ -105,7 +118,7 @@ const highlightedProjectsSample: Project[] = [
     link: '',
   },
   {
-    address: '0x0',
+    address: '0x03',
     title: 'Sample Project 3',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
@@ -120,6 +133,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   // User
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isMember, setIsMember] = useState<boolean>(false);
+  const [member, setMember] = useState<Member | null>(null);
   const [signer, setSigner] = useState<null | ethers.providers.JsonRpcSigner>(null);
   const [userAddress, setUserAddress] = useState<null | string>(null);
 
@@ -128,11 +142,12 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const [currentProjects, setCurrentProjects] = useState<Project[]>([]);
 
   //Round
-  const [roundStatus, setRoundStatus] = useState<'propose' | 'vote'>('propose');
+  const [roundStatus, setRoundStatus] = useState<'propose' | 'vote'>('vote');
 
   //Other
   const [ourImpact, setOurImpact] = useState<DAOImpact | null>(null);
   const [IPFSClient, setIPFSClient] = useState<IPFSHTTPClient | null>(null);
+  const [alert, setAlert] = useState<AlertInfo>({ open: false });
 
   const { ethereum } = window as any;
 
@@ -157,7 +172,22 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
   const checkIfMember = async () => {
     //smart contract = check if a user is member of the DAO
+    // setIsMember(true);
+    // setMember({
+    //   address: userAddress ?? '',
+    //   lastVotes: ['0x01', '0x06'],
+    //   votesRemaining: 3,
+    // });
     console.log('Check if Member');
+  };
+
+  const voteForProject = async (projectAddress: string, nbVote: number) => {
+    if (!!member) {
+      console.log('Giving ', nbVote, ' votes to ', projectAddress);
+      setMember((m) =>
+        !m ? null : { ...m, votesRemaining: (m?.votesRemaining ?? 0) - nbVote }
+      );
+    }
   };
 
   //Projects
@@ -259,7 +289,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         //User
         isConnected,
         isMember,
+        member,
         connectWallet,
+        voteForProject,
         //Projects
         uploadImageToIPFS,
         highlightedProjects,
@@ -269,9 +301,23 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         roundStatus,
         //Other
         ourImpact,
+        setAlert,
       }}
     >
       {children}
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={6000}
+        onClose={() => setAlert({ open: false })}
+      >
+        <Alert
+          onClose={() => setAlert({ open: false })}
+          severity={alert.severity ?? 'info'}
+          sx={{ width: '100%' }}
+        >
+          {alert.description ?? ''}
+        </Alert>
+      </Snackbar>
     </GlobalContext.Provider>
   );
 };

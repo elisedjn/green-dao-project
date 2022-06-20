@@ -4,10 +4,13 @@ export type Project = {
   title: string;
   link: string;
   address: string;
+  votes?: number;
 };
 
 export type Member = {
   address: string;
+  lastVotes: string[];
+  votesRemaining: number;
 };
 
 export type LinkType = {
@@ -21,4 +24,10 @@ export type DAOImpact = {
   projectsContributed: number;
   donators: number;
   alreadySent: number;
+};
+
+export type AlertInfo = {
+  open: boolean;
+  description?: string;
+  severity?: 'success' | 'info' | 'warning' | 'error';
 };
