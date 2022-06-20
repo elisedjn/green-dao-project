@@ -199,4 +199,49 @@ describe('GreenDAO', function () {
   //   // ELISE : At this point I realize we need to store the project address into the Project struct to be able to havee it when calling getCurrentProjects.
   //   // const votedProject = currentProjects.find(project =>
   // });
+
+  it('Should display status of current round', async function () {
+    expect(await contract.getCurrentRoundStatus()).to.equal(RoundStatus.Propose);
+  });
+
+  it('Should add donations to the balance', async function () {
+    const donation = BigNumber.from(10).pow(18).mul(40);
+    await token.connect(member1).approve(contract.address, donation);
+    await contract.connect(member1).donate(donation);
+    expect(await contract.totalCollected()).to.equal(donation);
+  });
+
+  it('Should assign correct number of votes to member', async function () {
+    const donation = BigNumber.from(10).pow(18).mul(90);
+    await token.connect(member2).approve(contract.address, donation);
+    await contract.connect(member2).donate(donation);
+    expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(
+      2
+    );
+  });
+
+  it('Should propose a new project', async function () {
+    const donation = BigNumber.from(10).pow(18).mul(90);
+    await token.connect(member2).approve(contract.address, donation);
+    await contract.connect(member2).donate(donation);
+    const projectAddress = await project1.getAddress();
+    await contract.connect(member2).addProject('new project', projectAddress);
+    const currentProjects = await contract.getCurrentProjects();
+    const isInProjects = currentProjects.find(
+      (project) => project.proposedBy == member2.address
+    );
+    expect(!!isInProjects);
+  });
+
+  it('Should revert as it is a non member', async function () {
+    const projectAddress = await project1.getAddress();
+    await expect(
+      contract.connect(nonmember).addProject('new project', projectAddress)
+    ).to.be.revertedWith('Address is not a member');
+  });
+
+  it('Should return actual balance', async function () {
+    expect(await token.balanceOf(contract.address)).to.equal(0);
+  });
+
 });

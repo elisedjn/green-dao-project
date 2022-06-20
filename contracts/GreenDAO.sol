@@ -38,9 +38,6 @@ contract GreenDAO {
         Vote
     }
     struct Round {
-        // need a way for the end of one round to trigger the next
-        // ELISE : We do not need that information, this is calculated by getCurrentRoundStatus and getCurrentRound
-        // bool started;
         bool hasBeenPaid;
         address[] winningProjects;
         uint256 balance;
@@ -56,11 +53,6 @@ contract GreenDAO {
     constructor(address _token, uint256 _pricePerVote) {
         owner = msg.sender;
         start = block.timestamp;
-        // initiate first round
-        // need to repeat this line inside another fx to trigger next round
-        // need logic to close the current round, trigger vote calculation
-        // ELISE : We do not need to initiate this mapping here
-        // rounds[0].started = true;
         token = _token;
         require(
             _pricePerVote > 10**ERC20(_token).decimals(),
@@ -203,48 +195,35 @@ contract GreenDAO {
         return projects[roundId][project].votes;
     }
 
-    function findWinners(uint256 roundId) internal returns (address[] memory) {
+
+    function findWinners(uint256 roundId)
+        internal
+        view
+        returns (address[] memory)
+    {
         uint256 firstVotes;
-        // uint256 nbOfFirst;
         uint256 secondVotes;
-        // uint256 nbOfSecond;
         uint256 thirdVotes;
-        // uint256 nbOfThird;
         for (uint256 i = 0; i < projectsPerRound[roundId].length; i++) {
             address projectAddr = projectsPerRound[roundId][i];
             uint256 votes = projects[roundId][projectAddr].votes;
-            if (votes == firstVotes) {
-                //Tie for first position
-                // nbOfFirst++;
-            } else if (votes > firstVotes) {
+            if (votes > firstVotes) {
                 // A new first is found!
                 // second become third
                 thirdVotes = secondVotes;
-                // nbOfThird = nbOfSecond;
                 //first become second
                 secondVotes = firstVotes;
-                // nbOfSecond = nbOfFirst;
                 // new first setup
                 firstVotes = votes;
-                // nbOfFirst = 1;
-            } else if (votes == secondVotes) {
-                // Tie for second position
-                // nbOfSecond++;
             } else if (votes > secondVotes) {
                 // A new second is found!
                 // second become third
                 thirdVotes = secondVotes;
-                // nbOfThird = nbOfSecond;
                 //new second setup
                 secondVotes = votes;
-                // nbOfSecond = 1;
-            } else if (votes == thirdVotes) {
-                //Tie for third
-                // nbOfThird++;
             } else if (votes > thirdVotes) {
                 //A new third is found!
                 thirdVotes = votes;
-                // nbOfThird = 1;
             }
         }
 
@@ -311,23 +290,31 @@ contract GreenDAO {
         return lastVotes;
     }
 
-    function getLastWinners() public view returns (Project[] memory) {
+    function getLastWinners()
+        public
+        view
+        returns (address[] memory, Project[] memory)
+    {
         uint256 prevRoundId = (getCurrentRound() - 1);
         address[] memory winners = rounds[prevRoundId].winningProjects;
         Project[] memory previousWinners = new Project[](winners.length);
         for (uint256 i = 0; i < winners.length; i++) {
             previousWinners[i] = (projects[prevRoundId][winners[i]]);
         }
-        return previousWinners;
+        return (winners, previousWinners);
     }
 
-    function getCurrentProjects() public view returns (Project[] memory) {
+    function getCurrentProjects()
+        public
+        view
+        returns (address[] memory, Project[] memory)
+    {
         uint256 roundId = getCurrentRound();
         address[] memory list = projectsPerRound[roundId];
         Project[] memory currentProjects = new Project[](list.length);
         for (uint256 i = 0; i < list.length; i++) {
             currentProjects[i] = (projects[roundId][list[i]]);
         }
-        return currentProjects;
+        return (list, currentProjects);
     }
 }
