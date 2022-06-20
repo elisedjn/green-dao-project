@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { DAOImpact, Project } from './types';
+import { create, IPFSHTTPClient } from 'ipfs-http-client';
 
 type GlobalContextType = {
   isConnected: boolean;
@@ -8,6 +9,7 @@ type GlobalContextType = {
   highlightedProjects: Project[];
   currentProjects: Project[];
   roundStatus: 'propose' | 'vote';
+  uploadImageToIPFS: (file: any) => Promise<string>;
   submitNewProject: (project: Project) => Promise<void>;
   connectWallet: () => Promise<void>;
   ourImpact: DAOImpact | null;
@@ -23,6 +25,7 @@ export const GlobalContext = createContext<GlobalContextType>({
   highlightedProjects: [],
   currentProjects: [],
   roundStatus: 'propose',
+  uploadImageToIPFS: async () => '',
   submitNewProject: async () => {},
   connectWallet: async () => {},
   ourImpact: null,
@@ -30,7 +33,7 @@ export const GlobalContext = createContext<GlobalContextType>({
 
 const currentProjectsSample: Project[] = [
   {
-    id: 0,
+    address: '0x0',
     title: 'Proposal Project 1',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
@@ -39,7 +42,7 @@ const currentProjectsSample: Project[] = [
     link: '',
   },
   {
-    id: 1,
+    address: '0x0',
     title: 'Proposal Project 2',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. ',
@@ -47,7 +50,7 @@ const currentProjectsSample: Project[] = [
     link: '',
   },
   {
-    id: 2,
+    address: '0x0',
     title: 'Proposal Project 3',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
@@ -56,7 +59,7 @@ const currentProjectsSample: Project[] = [
     link: '',
   },
   {
-    id: 3,
+    address: '0x0',
     title: 'Proposal Project 1',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
@@ -65,7 +68,7 @@ const currentProjectsSample: Project[] = [
     link: '',
   },
   {
-    id: 4,
+    address: '0x0',
     title: 'Proposal Project 2',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. ',
@@ -73,7 +76,7 @@ const currentProjectsSample: Project[] = [
     link: '',
   },
   {
-    id: 5,
+    address: '0x0',
     title: 'Proposal Project 3',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
@@ -85,7 +88,7 @@ const currentProjectsSample: Project[] = [
 
 const highlightedProjectsSample: Project[] = [
   {
-    id: 0,
+    address: '0x0',
     title: 'Sample Project 1',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
@@ -94,7 +97,7 @@ const highlightedProjectsSample: Project[] = [
     link: '',
   },
   {
-    id: 1,
+    address: '0x0',
     title: 'Sample Project 2',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. ',
@@ -102,7 +105,7 @@ const highlightedProjectsSample: Project[] = [
     link: '',
   },
   {
-    id: 2,
+    address: '0x0',
     title: 'Sample Project 3',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
@@ -129,6 +132,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
   //Other
   const [ourImpact, setOurImpact] = useState<DAOImpact | null>(null);
+  const [IPFSClient, setIPFSClient] = useState<IPFSHTTPClient | null>(null);
 
   const { ethereum } = window as any;
 
@@ -173,11 +177,30 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     setCurrentProjects(currentProjectsSample);
   };
 
+  const uploadImageToIPFS = async (file: any) => {
+    try {
+      const added = await IPFSClient?.add(file);
+      return `https://ipfs.infura.io/ipfs/${added?.path}`;
+    } catch (error) {
+      console.log(error);
+      return '';
+    }
+  };
+
   const submitNewProject = async (project: Project) => {
     // IPFS = save the data
-    // smart contract = create the project
-    console.log('submitNewProject');
-    await getCurrentProjects();
+    try {
+      const added = await IPFSClient?.add(JSON.stringify(project));
+      const data = `https://ipfs.infura.io/ipfs/${added?.path}`;
+      console.log('data of new project', data);
+
+      // smart contract = create the project
+
+      console.log('submitNewProject');
+      await getCurrentProjects();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   //Rounds
@@ -208,7 +231,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   //Round
   useEffect(() => {
     getRoundStatus();
-  });
+  }, []);
 
   //Projects
   useEffect(() => {
@@ -219,7 +242,16 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   //Other
   useEffect(() => {
     getDOAImpact();
-  });
+  }, []);
+
+  useEffect(() => {
+    const createIPFSClient = async () => {
+      const client = await create({ url: 'https://ipfs.infura.io:5001/api/v0' });
+      setIPFSClient(client);
+      console.log('client', client);
+    };
+    createIPFSClient();
+  }, []);
 
   return (
     <GlobalContext.Provider
@@ -229,6 +261,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         isMember,
         connectWallet,
         //Projects
+        uploadImageToIPFS,
         highlightedProjects,
         currentProjects,
         submitNewProject,

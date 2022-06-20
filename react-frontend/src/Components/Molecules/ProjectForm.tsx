@@ -8,10 +8,11 @@ import {
   TextField,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Project } from '../../utils/types';
 import Button from '../Atoms/Button';
 import './ProjectForm.scss';
+import { GlobalContext } from '../../utils/GlobalContext';
 
 type ProjectFormProps = {
   open: boolean;
@@ -20,13 +21,13 @@ type ProjectFormProps = {
 };
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }) => {
+  const { uploadImageToIPFS } = useContext(GlobalContext);
   const [project, setProject] = useState<Project>({
     title: '',
     description: '',
     image: '',
     link: '',
     address: '',
-    id: 0,
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -43,13 +44,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
     setProject((p) => ({ ...p, [field]: value }));
   };
 
-  const handleAddImage = (e: any) => {
+  const handleAddImage = async (e: any) => {
     setNewImageSrc('/loading.gif');
     e.preventDefault();
-    let uploadData = new FormData();
-    uploadData.append('imageUrl', e.currentTarget.files[0]);
-    console.log('upload image', uploadData);
-    //Do the logic with IPFS here
+    const file = e.target.files[0];
+    const url = await uploadImageToIPFS(file);
+    setProject((p) => ({ ...p, image: url }));
+    setNewImageSrc(url);
   };
 
   const checkErrors = () => {

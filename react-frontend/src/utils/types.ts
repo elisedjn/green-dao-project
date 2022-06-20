@@ -1,10 +1,9 @@
 export type Project = {
-  id: number;
   image: string;
   description: string;
   title: string;
   link: string;
-  address?: string;
+  address: string;
 };
 
 export type Member = {
