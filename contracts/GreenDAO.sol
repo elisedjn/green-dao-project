@@ -22,8 +22,6 @@ contract GreenDAO {
         address[] hasVotedFor;
     }
     struct Project {
-        // added this to pass voting tests
-        bool exists;
         string data;
         uint256 votes;
         address proposedBy;
@@ -120,8 +118,6 @@ contract GreenDAO {
         );
 
         Project memory project;
-        //added to pass voting tests
-        project.exists = true;
         project.data = _data;
         project.proposedBy = msg.sender;
 
@@ -138,16 +134,13 @@ contract GreenDAO {
 
         // Check that the project exist for this round
         require(
-            // changed this to pass tests... previous code reverted in test: project is not in this round
-            projects[getCurrentRound()][projectAddress].exists == true,
+            projects[getCurrentRound()][projectAddress].proposedBy !=
+                address(0),
             "This project is not part of the current round"
         );
 
         members[msg.sender].votes -= nbOfVote;
-        // changed this to get tests to run
         members[msg.sender].hasVotedFor.push(projectAddress);
-        //     members[msg.sender].hasVotedFor.length
-        // ] = projectAddress;
         projects[getCurrentRound()][projectAddress].votes += nbOfVote;
     }
 
@@ -188,16 +181,6 @@ contract GreenDAO {
                 amount
             );
         }
-    }
-
-    // added this fx to facilitate testing
-    function getCurrentVoteCount(address project)
-        public
-        view
-        returns (uint256 votes)
-    {
-        uint roundId = getCurrentRound();
-        return projects[roundId][project].votes;
     }
 
     function findWinners(uint256 roundId)
@@ -273,15 +256,6 @@ contract GreenDAO {
     function isMember(address user) public view returns (bool) {
         uint256 currentRound = getCurrentRound();
         return members[user].lastRoundPaid == currentRound;
-    }
-
-    function getMemberRemainingVotes(address user)
-        public
-        view
-        returns (uint256)
-    {
-        require(isMember(user), "Address is not a member");
-        return members[user].votes;
     }
 
     function getProjectsMemberVotedFor(address user)

@@ -107,9 +107,7 @@ describe('GreenDAO', function () {
       const donation = BigNumber.from(10).pow(18).mul(90);
       await token.connect(member2).approve(contract.address, donation);
       await contract.connect(member2).donate(donation);
-      expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(
-        2
-      );
+      expect((await contract.members(await member2.getAddress())).votes).to.equal(2);
     });
 
     it('Should record anonymous donations', async function () {
@@ -130,15 +128,13 @@ describe('GreenDAO', function () {
 
       await token.connect(member1).approve(contract.address, donation);
       await contract.connect(member1).donate(donation);
-    })
+    });
 
     it('Should propose a new project', async function () {
       const projectAddress = await project1.getAddress();
       await contract.connect(member1).addProject('new project', projectAddress);
-      const currentProjects = await contract.getCurrentProjects();
-      const isInProjects = currentProjects.find(
-        (project) => project.proposedBy == member2.address
-      );
+      const [currentAddresses, currentProjects] = await contract.getCurrentProjects();
+      const isInProjects = currentAddresses.includes(projectAddress);
       expect(!!isInProjects);
     });
 
@@ -175,44 +171,49 @@ describe('GreenDAO', function () {
       await contract.connect(member2).addProject('new project', projectAddress1);
       await contract.connect(member2).addProject('new project', projectAddress2);
       // increasing block time by 3 weeks to switch to voting phase
-      // evm_increaseTime(oneWeekInSec * 3);
-      await network.provider.send("evm_increaseTime", [oneWeekInSec * 3]);
-      await network.provider.send("evm_mine");
-      // check phase is changed (true)
-      console.log(await contract.getCurrentRoundStatus() === RoundStatus.Vote);
-      // check projects have been added
-      console.log(await contract.getCurrentProjects())
+      await evm_increaseTime(oneWeekInSec * 3);
       // then vote for the project
       await contract.connect(member2).voteForProject(projectAddress1, 2);
       await contract.connect(member2).voteForProject(projectAddress2, 1);
-
     });
 
     it('Should subtract the used vote', async function () {
       // member 2 should have 3 votes, vote on each project and have 0 left
-      expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(0);
+      const member = await contract.members(await member2.getAddress());
+      console.log('MEMBER2', member);
+      expect(member.votes).to.equal(0);
     });
 
     it('Should add the used votes to project vote count', async function () {
       // 2 projects should have collected one vote each
       const projectAddress1 = await project1.getAddress();
       const projectAddress2 = await project2.getAddress();
-      expect(await contract.getCurrentVoteCount(projectAddress1)).to.equal(2);
-      expect(await contract.getCurrentVoteCount(projectAddress2)).to.equal(1);
+      const [currentAddresses, currentProjects] = await contract.getCurrentProjects();
+
+      const projects = currentProjects.map((p, i) => ({
+        ...p,
+        address: currentAddresses[i],
+      }));
+
+      const p1Votes = projects.find((p) => p.address === projectAddress1).votes;
+      const p2Votes = projects.find((p) => p.address === projectAddress2).votes;
+      expect(p1Votes).to.equal(2);
+      expect(p2Votes).to.equal(1);
     });
 
     it('Should provide an array of projects the member voted for', async function () {
       const projectAddress1 = await project1.getAddress();
       const projectAddress2 = await project2.getAddress();
       // votes should be reflected in member.hasVotedFor
-      expect((await contract.getProjectsMemberVotedFor(await member2.getAddress())).length).to.equal(2);
+      expect(
+        (await contract.getProjectsMemberVotedFor(await member2.getAddress())).length
+      ).to.equal(2);
     });
   });
 
-
   describe('find and fund winning projects', () => {
     //getCurrentProjects
-    it('Should provide the correct number of projects proposed for the current round', async function () { });
+    it('Should provide the correct number of projects proposed for the current round', async function () {});
 
     //find winners
     it('Should select winning projects by most votes recieved', async function () {
