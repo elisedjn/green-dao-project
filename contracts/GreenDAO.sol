@@ -5,8 +5,9 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@chainlink/contracts/src/v0.7/KeeperCompatible.sol";
 
-contract GreenDAO {
+contract GreenDAO is KeeperCompatibleInterface {
     using SafeERC20 for IERC20;
     uint256 public constant ROUND_DURATION = 4 weeks;
     uint256 public constant PROPOSAL_DURATION = 3 weeks;
@@ -73,6 +74,20 @@ contract GreenDAO {
         }
         return RoundStatus.Vote;
     }
+
+    // this is the example code
+    function checkUpkeep(bytes calldata /* checkData */) external override returns (bool upkeepNeeded, bytes memory /* performData */) {
+        upkeepNeeded = (block.timestamp - lastTimeStamp) > interval;
+        // We don't use the checkData in this example. The checkData is defined when the Upkeep was registered.
+    }
+
+    // this is the example code
+    function performUpkeep(bytes calldata /* performData */) external override {
+        //We highly recommend revalidating the upkeep in the performUpkeep function
+        if ((block.timestamp - lastTimeStamp) > interval ) {
+            lastTimeStamp = block.timestamp;
+            counter = counter + 1;
+        }
 
     function donate(uint256 amount) public returns (uint256) {
         SafeERC20.safeTransferFrom(
