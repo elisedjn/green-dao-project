@@ -75,19 +75,31 @@ contract GreenDAO is KeeperCompatibleInterface {
         return RoundStatus.Vote;
     }
 
-    // this is the example code
-    function checkUpkeep(bytes calldata /* checkData */) external override returns (bool upkeepNeeded, bytes memory /* performData */) {
-        upkeepNeeded = (block.timestamp - lastTimeStamp) > interval;
+    // For ChainlinkKeeper
+    function checkUpkeep()
+        external
+        override
+        returns (
+            /*bytes calldata  checkData */
+            bool upkeepNeeded /*bytes memory  performData */
+        )
+    {
+        uint256 previousRound = getCurrentRound() - 1;
+        upkeepNeeded = !rounds[previousRound].hasBeenPaid;
+        // upkeepNeeded = (block.timestamp - lastTimeStamp) > interval;
         // We don't use the checkData in this example. The checkData is defined when the Upkeep was registered.
     }
 
     // this is the example code
-    function performUpkeep(bytes calldata /* performData */) external override {
+    function performUpkeep(
+        bytes calldata /* performData */
+    ) external override {
         //We highly recommend revalidating the upkeep in the performUpkeep function
-        if ((block.timestamp - lastTimeStamp) > interval ) {
-            lastTimeStamp = block.timestamp;
-            counter = counter + 1;
+        uint256 previousRound = getCurrentRound() - 1;
+        if (!rounds[previousRound].hasBeenPaid) {
+            distributeToProjects();
         }
+    }
 
     function donate(uint256 amount) public returns (uint256) {
         SafeERC20.safeTransferFrom(
