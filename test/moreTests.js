@@ -25,6 +25,11 @@ describe('GreenDAO', function () {
   let member2;
   let nonmember;
   let project1;
+  let project2;
+  let project3;
+  let project4;
+  let project5;
+  let project6;
   let snapshot;
   before(async () => {
     //Get some addresses
@@ -33,6 +38,11 @@ describe('GreenDAO', function () {
     member2 = ethers.provider.getSigner(2);
     nonmember = ethers.provider.getSigner(3);
     project1 = ethers.provider.getSigner(4);
+    project2 = ethers.provider.getSigner(5);
+    project3 = ethers.provider.getSigner(6);
+    project4 = ethers.provider.getSigner(7);
+    project5 = ethers.provider.getSigner(8);
+    project6 = ethers.provider.getSigner(9);
 
     //Creating a fake token for the test
     const Token = await ethers.getContractFactory('TestingToken');
@@ -84,10 +94,9 @@ describe('GreenDAO', function () {
     });
   });
 
-  describe('handle incoming donations', () => {
+  describe('incoming donations', () => {
     it('Should add donation value', async function () {
       const donation = BigNumber.from(10).pow(18).mul(40);
-
       await token.connect(member1).approve(contract.address, donation);
       await contract.connect(member1).donate(donation);
       expect(await contract.totalCollected()).to.equal(donation);
@@ -98,9 +107,7 @@ describe('GreenDAO', function () {
       const donation = BigNumber.from(10).pow(18).mul(90);
       await token.connect(member2).approve(contract.address, donation);
       await contract.connect(member2).donate(donation);
-      expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(
-        2
-      );
+      expect((await contract.members(await member2.getAddress())).votes).to.equal(2);
     });
 
     it('Should record anonymous donations', async function () {
@@ -113,32 +120,35 @@ describe('GreenDAO', function () {
   });
 
   describe('proposal creation', () => {
-    it('Should propose a new project', async function () {
-      // First member 2 donate to become a member and be able to add a project;
-      const donation = BigNumber.from(10).pow(18).mul(90);
+    beforeEach(async () => {
+      // First 2 members donate to become a member and be able to add a project;
+      const donation = BigNumber.from(10).pow(18).mul(40);
       await token.connect(member2).approve(contract.address, donation);
       await contract.connect(member2).donate(donation);
 
+      await token.connect(member1).approve(contract.address, donation);
+      await contract.connect(member1).donate(donation);
+    });
+
+    it('Should propose a new project', async function () {
       const projectAddress = await project1.getAddress();
-      await contract.connect(member2).addProject('new project', projectAddress);
-      const currentProjects = await contract.getCurrentProjects();
-      const isInProjects = currentProjects.find(
-        (project) => project.proposedBy == member2.address
-      );
+      await contract.connect(member1).addProject('new project', projectAddress);
+      const [currentAddresses, currentProjects] = await contract.getCurrentProjects();
+      const isInProjects = currentAddresses.includes(projectAddress);
       expect(!!isInProjects);
     });
 
-    // does not revert. contract allows a second member to propose an identical project,
-    // or the same member to propose it twice
     it('Should revert duplicate proposal', async function () {
-      const donation = BigNumber.from(10).pow(18).mul(40);
-      await token.connect(member1).approve(contract.address, donation);
-      await contract.connect(member1).donate(donation);
-
       const projectAddress = await project1.getAddress();
+      await contract.connect(member1).addProject('new project', projectAddress);
+      // member 1 tries to same propose project again
       await expect(
         contract.connect(member1).addProject('new project', projectAddress)
-      ).to.be.revertedWith('Project has already been proposed');
+      ).to.be.revertedWith('This project has already been submitted');
+      // member 2 tries to propose project already created by member1
+      await expect(
+        contract.connect(member2).addProject('new project', projectAddress)
+      ).to.be.revertedWith('This project has already been submitted');
     });
 
     it('Should revert proposal from non member ', async function () {
@@ -151,47 +161,57 @@ describe('GreenDAO', function () {
 
   describe('apply voting credits', () => {
     beforeEach(async () => {
-      // increasing block time by 3 weeks
-      evm_increaseTime(oneWeekInSec * 3);
-      // First member 2 donate to become a member and be able to add a project;
-      const donation = BigNumber.from(10).pow(18).mul(90);
+      // First member 2 donates to become a member and be able to add a project;
+      const donation = BigNumber.from(10).pow(18).mul(120);
       await token.connect(member2).approve(contract.address, donation);
       await contract.connect(member2).donate(donation);
-      // then add a project so there is one to vote on
-      const projectAddress = await project1.getAddress();
-      await contract.connect(member2).addProject('new project', projectAddress);
+      // then add 2 projects so they can be voted on
+      const projectAddress1 = await project1.getAddress();
+      const projectAddress2 = await project2.getAddress();
+      await contract.connect(member2).addProject('new project', projectAddress1);
+      await contract.connect(member2).addProject('new project', projectAddress2);
+      // increasing block time by 3 weeks to switch to voting phase
+      await evm_increaseTime(oneWeekInSec * 3);
+      // then vote for the project
+      await contract.connect(member2).voteForProject(projectAddress1, 2);
+      await contract.connect(member2).voteForProject(projectAddress2, 1);
     });
 
-    it('Should substract the used vote', async function () {
-      // Then vote for the project
-      const projectAddress = await project1.getAddress();
-      await contract.connect(member2).voteForProject(projectAddress, 1);
-      // member 2 should have 2 votes, use 1 for this vote, and have 1 left
-      expect(await contract.getMemberRemainingVotes()).to.equal(1);
+    it('Should subtract the used vote', async function () {
+      // member 2 should have 3 votes, vote on each project and have 0 left
+      const member = await contract.members(await member2.getAddress());
+      console.log('MEMBER2', member);
+      expect(member.votes).to.equal(0);
     });
 
     it('Should add the used votes to project vote count', async function () {
-      // Then vote for the project
-      const projectAddress = project1.getAddress();
-      await contract.connect(member2).voteForProject(projectAddress, 2);
-      // member 1 should have 2 votes, use 2 for this vote, and have 0 left
-      expect(await contract.getMemberRemainingVotes()).to.equal(0);
-      expect(await contract.getCurrentVoteCount(projectAddress)).to.equal(2);
+      // 2 projects should have collected one vote each
+      const projectAddress1 = await project1.getAddress();
+      const projectAddress2 = await project2.getAddress();
+      const [currentAddresses, currentProjects] = await contract.getCurrentProjects();
+
+      const projects = currentProjects.map((p, i) => ({
+        ...p,
+        address: currentAddresses[i],
+      }));
+
+      const p1Votes = projects.find((p) => p.address === projectAddress1).votes;
+      const p2Votes = projects.find((p) => p.address === projectAddress2).votes;
+      expect(p1Votes).to.equal(2);
+      expect(p2Votes).to.equal(1);
+    });
+
+    it('Should provide an array of projects the member voted for', async function () {
+      const projectAddress1 = await project1.getAddress();
+      const projectAddress2 = await project2.getAddress();
+      // votes should be reflected in member.hasVotedFor
+      expect(
+        (await contract.getProjectsMemberVotedFor(await member2.getAddress())).length
+      ).to.equal(2);
     });
   });
 
   describe('find and fund winning projects', () => {
-    // Riley add here
-    // calculate remaining votes
-    it('Should show the member number of votes decrease after voting', async function () {
-      //member.votes should decrease by nbOfVote a member uses to vote
-    });
-
-    //Last projects the member voted for
-    it('Should provide an array of projects the member voted', async function () {
-      // the number and addresss of members[member].hasVotedFor should equal lastVotes
-    });
-
     //getCurrentProjects
     it('Should provide the correct number of projects proposed for the current round', async function () {});
 

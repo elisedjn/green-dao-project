@@ -114,7 +114,7 @@ contract GreenDAO {
 
         require(
             projects[roundId][_proposedRecipient].proposedBy == address(0),
-            "This project has already been submited"
+            "This project has already been submitted"
         );
 
         Project memory project;
@@ -134,15 +134,13 @@ contract GreenDAO {
 
         // Check that the project exist for this round
         require(
-            projects[getCurrentRound()][projectAddress].proposedBy ==
+            projects[getCurrentRound()][projectAddress].proposedBy !=
                 address(0),
             "This project is not part of the current round"
         );
 
         members[msg.sender].votes -= nbOfVote;
-        members[msg.sender].hasVotedFor[
-            members[msg.sender].hasVotedFor.length
-        ] = projectAddress;
+        members[msg.sender].hasVotedFor.push(projectAddress);
         projects[getCurrentRound()][projectAddress].votes += nbOfVote;
     }
 
@@ -184,17 +182,6 @@ contract GreenDAO {
             );
         }
     }
-
-    // added this fx to facilitate testing
-    function getCurrentVoteCount(address project)
-        public
-        view
-        returns (uint256 votes)
-    {
-        uint roundId = getCurrentRound();
-        return projects[roundId][project].votes;
-    }
-
 
     function findWinners(uint256 roundId)
         internal
@@ -271,16 +258,7 @@ contract GreenDAO {
         return members[user].lastRoundPaid == currentRound;
     }
 
-    function getMemberRemainingVotes(address user)
-        public
-        view
-        returns (uint256)
-    {
-        require(isMember(user), "Address is not a member");
-        return members[user].votes;
-    }
-
-    function getMembersLastVotes(address user)
+    function getProjectsMemberVotedFor(address user)
         public
         view
         returns (address[] memory)
