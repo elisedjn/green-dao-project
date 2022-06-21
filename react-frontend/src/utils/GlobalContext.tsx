@@ -385,12 +385,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   }, []);
 
   useEffect(() => {
-    getProjectDataFromIPFS(
-      'https://ipfs.infura.io/ipfs/QmR1Qr9HwD6XxZY4e5yMbRHWHbAj2ZVjApzDu3MBa56ytV'
-    );
-  });
-
-  useEffect(() => {
     const createIPFSClient = async () => {
       try {
         const client = await create({ url: 'https://ipfs.infura.io:5001/api/v0' });
