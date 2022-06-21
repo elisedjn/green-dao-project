@@ -4,6 +4,8 @@ const { ethers } = require('hardhat');
 const { solidity } = require('ethereum-waffle');
 const { evm_snapshot, evm_revert, evm_increaseTime } = require('./helpers');
 
+
+
 chai.use(solidity);
 
 const { expect, assert } = chai;
@@ -23,16 +25,28 @@ describe('GreenDAO', function () {
   let owner;
   let member1;
   let member2;
+  let member3;
   let nonmember;
   let project1;
+  let project2;
+  let project3;
+  let project4;
+  let project5;
+  let project6;
   let snapshot;
   before(async () => {
     //Get some addresses
     owner = ethers.provider.getSigner(0);
     member1 = ethers.provider.getSigner(1);
     member2 = ethers.provider.getSigner(2);
+
     nonmember = ethers.provider.getSigner(3);
     project1 = ethers.provider.getSigner(4);
+    project2 = ethers.provider.getSigner(5);
+    project3 = ethers.provider.getSigner(6);
+    project4 = ethers.provider.getSigner(7);
+    project5 = ethers.provider.getSigner(8);
+    project6 = ethers.provider.getSigner(9);
 
     //Creating a fake token for the test
     const Token = await ethers.getContractFactory('TestingToken');
@@ -84,120 +98,178 @@ describe('GreenDAO', function () {
     });
   });
 
-  describe('handle incoming donations', () => {
-    it('Should add donation value', async function () {
-      const donation = BigNumber.from(10).pow(18).mul(40);
+  // describe('handle incoming donations', () => {
+  //   it('Should add donation value', async function () {
+  //     const donation = BigNumber.from(10).pow(18).mul(40);
 
-      await token.connect(member1).approve(contract.address, donation);
-      await contract.connect(member1).donate(donation);
-      expect(await contract.totalCollected()).to.equal(donation);
-      expect(await token.balanceOf(contract.address)).to.equal(donation);
-    });
+  //     await token.connect(member1).approve(contract.address, donation);
+  //     await contract.connect(member1).donate(donation);
+  //     expect(await contract.totalCollected()).to.equal(donation);
+  //     expect(await token.balanceOf(contract.address)).to.equal(donation);
+  //   });
 
-    it('Should assign correct number of votes to member', async function () {
-      const donation = BigNumber.from(10).pow(18).mul(90);
-      await token.connect(member2).approve(contract.address, donation);
-      await contract.connect(member2).donate(donation);
-      expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(
-        2
-      );
-    });
+  //   it('Should assign correct number of votes to member', async function () {
+  //     const donation = BigNumber.from(10).pow(18).mul(90);
+  //     await token.connect(member2).approve(contract.address, donation);
+  //     await contract.connect(member2).donate(donation);
+  //     expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(
+  //       2
+  //     );
+  //   });
 
-    it('Should record anonymous donations', async function () {
-      const donation = BigNumber.from(10).pow(18).mul(20);
-      await token.connect(nonmember).approve(contract.address, donation);
-      await contract.connect(nonmember).donate(donation);
-      expect(await contract.anonymousDonations()).to.equal(1);
-      expect(await token.balanceOf(contract.address)).to.equal(donation);
-    });
-  });
+  //   it('Should record anonymous donations', async function () {
+  //     const donation = BigNumber.from(10).pow(18).mul(20);
+  //     await token.connect(nonmember).approve(contract.address, donation);
+  //     await contract.connect(nonmember).donate(donation);
+  //     expect(await contract.anonymousDonations()).to.equal(1);
+  //     expect(await token.balanceOf(contract.address)).to.equal(donation);
+  //   });
+  // });
 
-  describe('proposal creation', () => {
-    it('Should propose a new project', async function () {
-      // First member 2 donate to become a member and be able to add a project;
-      const donation = BigNumber.from(10).pow(18).mul(90);
-      await token.connect(member2).approve(contract.address, donation);
-      await contract.connect(member2).donate(donation);
+  // describe('proposal creation', () => {
+  //   it('Should propose a new project', async function () {
+  //     // First member 2 donate to become a member and be able to add a project;
+  //     const donation = BigNumber.from(10).pow(18).mul(90);
+  //     await token.connect(member2).approve(contract.address, donation);
+  //     await contract.connect(member2).donate(donation);
 
-      const projectAddress = await project1.getAddress();
-      await contract.connect(member2).addProject('new project', projectAddress);
-      const currentProjects = await contract.getCurrentProjects();
-      const isInProjects = currentProjects.find(
-        (project) => project.proposedBy == member2.address
-      );
-      expect(!!isInProjects);
-    });
+  //     const projectAddress = await project1.getAddress();
+  //     await contract.connect(member2).addProject('new project', projectAddress);
+  //     const currentProjects = await contract.getCurrentProjects();
+  //     const isInProjects = currentProjects.find(
+  //       (project) => project.proposedBy == member2.address
+  //     );
+  //     expect(!!isInProjects);
+  //   });
 
-    // does not revert. contract allows a second member to propose an identical project,
-    // or the same member to propose it twice
-    it('Should revert duplicate proposal', async function () {
-      const donation = BigNumber.from(10).pow(18).mul(40);
-      await token.connect(member1).approve(contract.address, donation);
-      await contract.connect(member1).donate(donation);
+  //   // // does not revert. contract allows a second member to propose an identical project,
+  //   // // or the same member to propose it twice
+  //   // it('Should revert duplicate proposal', async function () {
+  //   //   const donation = BigNumber.from(10).pow(18).mul(40);
+  //   //   await token.connect(member1).approve(contract.address, donation);
+  //   //   await contract.connect(member1).donate(donation);
 
-      const projectAddress = await project1.getAddress();
-      await expect(
-        contract.connect(member1).addProject('new project', projectAddress)
-      ).to.be.revertedWith('Project has already been proposed');
-    });
+  //   //   const projectAddress = await project1.getAddress();
+  //   //   await expect(
+  //   //     contract.connect(member1).addProject('new project', projectAddress)
+  //   //   ).to.be.revertedWith('Project has already been proposed');
+  //   // });
 
-    it('Should revert proposal from non member ', async function () {
-      const projectAddress = await project1.getAddress();
-      await expect(
-        contract.connect(nonmember).addProject('new project', projectAddress)
-      ).to.be.revertedWith('Address is not a member');
-    });
-  });
+  //   it('Should revert proposal from non member ', async function () {
+  //     const projectAddress = await project1.getAddress();
+  //     await expect(
+  //       contract.connect(nonmember).addProject('new project', projectAddress)
+  //     ).to.be.revertedWith('Address is not a member');
+  //   });
+  // });
 
-  describe('apply voting credits', () => {
-    beforeEach(async () => {
-      // increasing block time by 3 weeks
-      evm_increaseTime(oneWeekInSec * 3);
-      // First member 2 donate to become a member and be able to add a project;
-      const donation = BigNumber.from(10).pow(18).mul(90);
-      await token.connect(member2).approve(contract.address, donation);
-      await contract.connect(member2).donate(donation);
-      // then add a project so there is one to vote on
-      const projectAddress = await project1.getAddress();
-      await contract.connect(member2).addProject('new project', projectAddress);
-    });
+  // describe('apply voting credits', () => {
+  //   beforeEach(async () => {
+  //     // increasing block time by 3 weeks
+  //     // First member 2 donate to become a member and be able to add a project;
+  //     const donation = BigNumber.from(10).pow(18).mul(90);
+  //     await token.connect(member2).approve(contract.address, donation);
+  //     await contract.connect(member2).donate(donation);
+  //     // then add a project so there is one to vote on
+  //     const projectAddress = await project1.getAddress();
+  //     await contract.connect(member2).addProject('new project', projectAddress);
+  //     await network.provider.send("evm_increaseTime", [oneWeekInSec * 3]);
+  //     await network.provider.send("evm_mine");
+  //   });
 
-    it('Should substract the used vote', async function () {
-      // Then vote for the project
-      const projectAddress = await project1.getAddress();
-      await contract.connect(member2).voteForProject(projectAddress, 1);
-      // member 2 should have 2 votes, use 1 for this vote, and have 1 left
-      expect(await contract.getMemberRemainingVotes()).to.equal(1);
-    });
+  //   it('Should substract the used vote', async function () {
+  //     const status = contract.getCurrentRoundStatus();
+  //     // Then vote for the project
+  //     const projectAddress = await project1.getAddress();
+  //     // console.log(await contract.getCurrentProjects());
+  //     await contract.connect(member2).voteForProject(projectAddress, 1);
+  //     // member 2 should have 2 votes, use 1 for this vote, and have 1 left
+  //     expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(1);
+  //   });
 
-    it('Should add the used votes to project vote count', async function () {
-      // Then vote for the project
-      const projectAddress = project1.getAddress();
-      await contract.connect(member2).voteForProject(projectAddress, 2);
-      // member 1 should have 2 votes, use 2 for this vote, and have 0 left
-      expect(await contract.getMemberRemainingVotes()).to.equal(0);
-      expect(await contract.getCurrentVoteCount(projectAddress)).to.equal(2);
-    });
-  });
+  //   it('Should add the used votes to project vote count', async function () {
+  //     // Then vote for the project
+  //     // evm_increaseTime(oneWeekInSec * 3);
+  //     const projectAddress = project1.getAddress();
+  //     await contract.connect(member2).voteForProject(projectAddress, 2);
+  //     // member 1 should have 2 votes, use 2 for this vote, and have 0 left
+  //     expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(0);
+  //     expect(await contract.getCurrentVoteCount(projectAddress)).to.equal(2);
+  //   });
+
+  //   //Last projects the member voted for
+  //   it('Should provide an array of projects the member voted', async function () {
+  //     // the number and addresss of members[member].hasVotedFor should equal lastVotes
+  //   });
+  // });
 
   describe('find and fund winning projects', () => {
-    // Riley add here
-    // calculate remaining votes
-    it('Should show the member number of votes decrease after voting', async function () {
-      //member.votes should decrease by nbOfVote a member uses to vote
+    beforeEach(async () => {
+      const donation = BigNumber.from(10).pow(18).mul(240);
+
+      //donate to be member (1)
+      await token.connect(member1).approve(contract.address, donation);
+      await contract.connect(member1).donate(donation);
+      //member 2
+      await token.connect(member2).approve(contract.address, donation);
+      await contract.connect(member2).donate(donation);
+
+
+      // then add multiple projects to vote on
+      const projectAddress1 = await project1.getAddress();
+      const projectAddress2 = await project2.getAddress();
+      const projectAddress3 = await project3.getAddress();
+      const projectAddress4 = await project4.getAddress();
+      const projectAddress5 = await project5.getAddress();
+
+      await contract.connect(member2).addProject('new project', projectAddress1);
+      await contract.connect(member2).addProject('new project', projectAddress2);
+      await contract.connect(member2).addProject('new project', projectAddress3);
+      await contract.connect(member1).addProject('new project', projectAddress4);
+      await contract.connect(member1).addProject('new project', projectAddress5);
+      evm_increaseTime(oneWeekInSec *3);
+
+      const status = await contract.getCurrentRoundStatus();
+      console.log("current status before each", status);
+
     });
 
-    //Last projects the member voted for
-    it('Should provide an array of projects the member voted', async function () {
-      // the number and addresss of members[member].hasVotedFor should equal lastVotes
-    });
-
-    //getCurrentProjects
-    it('Should provide the correct number of projects proposed for the current round', async function () {});
 
     //find winners
     it('Should select winning projects by most votes recieved', async function () {
+
+      const projectAddress1 = await project1.getAddress();
+      const projectAddress2 = await project2.getAddress();
+      const projectAddress3 = await project3.getAddress();
+      const projectAddress4 = await project1.getAddress();
+      const projectAddress5 = await project1.getAddress();
       // 1st place votes > 2nd place votes > 3rd place votes
+      await contract.connect(member2).voteForProject(projectAddress1, 3);
+      await contract.connect(member2).voteForProject(projectAddress2, 2);
+      await contract.connect(member2).voteForProject(projectAddress3, 1);
+      await contract.connect(member1).voteForProject(projectAddress1, 3);
+      await contract.connect(member1).voteForProject(projectAddress2, 2);
+      await contract.connect(member1).voteForProject(projectAddress3, 1);
+      const round0 = await contract.getCurrentRound();
+      console.log("current round0", round0)
+
+
+      await network.provider.send("evm_increaseTime", [oneWeekInSec * 3]);
+      await network.provider.send("evm_mine");
+
+      const nextRound = await contract.getCurrentRound();
+      console.log("current round", nextRound)
+
+      // find winners and disribute funds to set state
+      await contract.distributeToProjects();
+
+      // const winners = await contract.getLastWinners();
+      // console.log(winners);
+
+      //only two winners
+
+      //tie
+
     });
     // distribute to projects
     it('Should distribute funds to the winners of the corresponding round', async function () {

@@ -133,17 +133,18 @@ contract GreenDAO {
         require(isMember(msg.sender), "Address is not a member");
 
         // Check that the project exist for this round
-        require(
-            projects[getCurrentRound()][projectAddress].proposedBy ==
-                address(0),
-            "This project is not part of the current round"
-        );
+        // require(
+        //     projects[getCurrentRound()][projectAddress].proposedBy ==
+        //         address(0),
+        //     "This project is not part of the current round"
+        // );
 
         members[msg.sender].votes -= nbOfVote;
-        members[msg.sender].hasVotedFor[
-            members[msg.sender].hasVotedFor.length
-        ] = projectAddress;
+        // members[msg.sender].hasVotedFor[
+        //     members[msg.sender].hasVotedFor.length
+        // ] = projectAddress;
         projects[getCurrentRound()][projectAddress].votes += nbOfVote;
+
     }
 
     function distributeToProjects() external {
@@ -194,7 +195,6 @@ contract GreenDAO {
         uint roundId = getCurrentRound();
         return projects[roundId][project].votes;
     }
-
 
     function findWinners(uint256 roundId)
         internal
