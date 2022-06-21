@@ -30,7 +30,7 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
                 : !member?.votesRemaining
                 ? setAlert({
                     open: true,
-                    severity: 'warning',
+                    severity: 'info',
                     description:
                       'You do not have anymore votes, please contribute to the DAO to get more votes',
                   })
@@ -57,7 +57,7 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
                   !member?.votesRemaining
                     ? setAlert({
                         open: true,
-                        severity: 'warning',
+                        severity: 'info',
                         description:
                           'You do not have anymore votes, please contribute to the DAO to get more votes',
                       })

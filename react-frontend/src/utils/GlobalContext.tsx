@@ -1,8 +1,9 @@
 import React, { createContext, useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { AlertInfo, DAOImpact, Member, Project } from './types';
-import { create, IPFSHTTPClient } from 'ipfs-http-client';
+import { create, IPFSHTTPClient, urlSource } from 'ipfs-http-client';
 import { Alert, Snackbar } from '@mui/material';
+import contractJSON from './GreenDao.json';
 
 type GlobalContextType = {
   isConnected: boolean;
@@ -37,6 +38,8 @@ export const GlobalContext = createContext<GlobalContextType>({
   ourImpact: null,
   setAlert: () => {},
 });
+
+const contractAddress = '';
 
 const currentProjectsSample: Project[] = [
   {
@@ -130,6 +133,10 @@ const highlightedProjectsSample: Project[] = [
 
 const GlobalContextProvider = ({ children }: ContextProps) => {
   // VARIABLES
+  // Contract and IPFS
+  const [IPFSClient, setIPFSClient] = useState<IPFSHTTPClient | null>(null);
+  const [contractInstance, setContractInstance] = useState<ethers.Contract | null>(null);
+
   // User
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isMember, setIsMember] = useState<boolean>(false);
@@ -142,16 +149,61 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const [currentProjects, setCurrentProjects] = useState<Project[]>([]);
 
   //Round
-  const [roundStatus, setRoundStatus] = useState<'propose' | 'vote'>('vote');
+  const [roundStatus, setRoundStatus] = useState<'propose' | 'vote'>('propose');
 
   //Other
   const [ourImpact, setOurImpact] = useState<DAOImpact | null>(null);
-  const [IPFSClient, setIPFSClient] = useState<IPFSHTTPClient | null>(null);
   const [alert, setAlert] = useState<AlertInfo>({ open: false });
 
   const { ethereum } = window as any;
 
   //FUNCTIONS
+  // Contract and IPFS
+  const connectToContract = async () => {
+    try {
+      const contract = null; // await new ethers.Contract(contractAddress, contractJSON);
+      console.log('contract', contract);
+      setContractInstance(contract);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const uploadImageToIPFS = async (file: any) => {
+    try {
+      const added = await IPFSClient?.add(file);
+      return `https://ipfs.infura.io/ipfs/${added?.path}`;
+    } catch (error: any) {
+      console.log(error);
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
+      return '';
+    }
+  };
+
+  const getProjectDataFromIPFS = async (IPFSlink: string) => {
+    try {
+      if (!IPFSClient) return;
+      const CID = IPFSlink.split('/ipfs/')[1] ?? '';
+      console.log(CID);
+      const stream = IPFSClient.cat(CID);
+      const decoder = new TextDecoder();
+      let data = '';
+      for await (const chunk of stream) {
+        // chunks of data are returned as a Uint8Array, convert it back to a string
+        data += decoder.decode(chunk, { stream: true });
+      }
+      console.log('data', JSON.parse(data));
+
+      return JSON.parse(data) as Project;
+    } catch (error: any) {
+      console.log(error.message);
+    }
+  };
+
   //User
   const connectWallet = async () => {
     try {
@@ -164,6 +216,13 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         setUserAddress(addr1 ?? null);
         setIsConnected(!!addr1);
         await checkIfMember();
+      } else {
+        setAlert({
+          open: true,
+          description:
+            'Please install Metamask to be able to use all the functionnality of D2R',
+          severity: 'info',
+        });
       }
     } catch (error) {
       console.log(error);
@@ -171,49 +230,71 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   };
 
   const checkIfMember = async () => {
-    //smart contract = check if a user is member of the DAO
-    // setIsMember(true);
-    // setMember({
-    //   address: userAddress ?? '',
-    //   lastVotes: ['0x01', '0x06'],
-    //   votesRemaining: 3,
-    // });
-    console.log('Check if Member');
+    try {
+      //smart contract = check if a user is member of the DAO
+      setIsMember(true);
+      setMember({
+        address: userAddress ?? '',
+        lastVotes: ['0x01', '0x06'],
+        votesRemaining: 3,
+      });
+      console.log('Check if Member');
+    } catch (error: any) {
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
+    }
   };
 
   const voteForProject = async (projectAddress: string, nbVote: number) => {
-    if (!!member) {
-      console.log('Giving ', nbVote, ' votes to ', projectAddress);
-      setMember((m) =>
-        !m ? null : { ...m, votesRemaining: (m?.votesRemaining ?? 0) - nbVote }
-      );
+    try {
+      if (!!member) {
+        console.log('Giving ', nbVote, ' votes to ', projectAddress);
+        setMember((m) =>
+          !m ? null : { ...m, votesRemaining: (m?.votesRemaining ?? 0) - nbVote }
+        );
+      }
+    } catch (error: any) {
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
     }
   };
 
   //Projects
   const getHighlightedProjects = async () => {
-    // get the projects for the home page
-    // smart contract = last round winner projects
-    // data on IPFS
-    console.log('getHighlightedProjects');
-    setHighlightedProjects(highlightedProjectsSample);
+    try {
+      // get the projects for the home page
+      // smart contract = last round winner projects
+      // data on IPFS
+      console.log('getHighlightedProjects');
+      setHighlightedProjects(highlightedProjectsSample);
+    } catch (error: any) {
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
+    }
   };
 
   const getCurrentProjects = async () => {
-    // get the projects for the member's page
-    // smart contract = actual projects
-    // data on IPFS
-    console.log('getCurrentProjects');
-    setCurrentProjects(currentProjectsSample);
-  };
-
-  const uploadImageToIPFS = async (file: any) => {
     try {
-      const added = await IPFSClient?.add(file);
-      return `https://ipfs.infura.io/ipfs/${added?.path}`;
-    } catch (error) {
-      console.log(error);
-      return '';
+      // get the projects for the member's page
+      // smart contract = actual projects
+      // data on IPFS
+      console.log('getCurrentProjects');
+      setCurrentProjects(currentProjectsSample);
+    } catch (error: any) {
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
     }
   };
 
@@ -228,31 +309,60 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
       console.log('submitNewProject');
       await getCurrentProjects();
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
     }
   };
 
   //Rounds
   const getRoundStatus = async () => {
-    // smart contract = get the actual round status
-    console.log('getRoundStatus');
+    try {
+      // smart contract = get the actual round status
+      console.log('getRoundStatus');
+    } catch (error: any) {
+      console.log(error);
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
+    }
   };
 
   //Other
   const getDOAImpact = async () => {
-    //smart contract = one function that gives back all the info
-    console.log('getDAOImpact');
-    setOurImpact({
-      balance: 10,
-      members: 20,
-      projectsContributed: 30,
-      donators: 100,
-      alreadySent: 50,
-    });
+    try {
+      //smart contract = one function that gives back all the info
+      console.log('getDAOImpact');
+      setOurImpact({
+        balance: 10,
+        members: 20,
+        projectsContributed: 30,
+        donators: 100,
+        alreadySent: 50,
+      });
+    } catch (error: any) {
+      console.log(error);
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
+    }
   };
 
   //USE EFFECTS
+
+  //Contract
+  useEffect(() => {
+    connectToContract();
+  }, []);
+
   //User
   useEffect(() => {
     connectWallet();
@@ -275,10 +385,20 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   }, []);
 
   useEffect(() => {
+    getProjectDataFromIPFS(
+      'https://ipfs.infura.io/ipfs/QmR1Qr9HwD6XxZY4e5yMbRHWHbAj2ZVjApzDu3MBa56ytV'
+    );
+  });
+
+  useEffect(() => {
     const createIPFSClient = async () => {
-      const client = await create({ url: 'https://ipfs.infura.io:5001/api/v0' });
-      setIPFSClient(client);
-      console.log('client', client);
+      try {
+        const client = await create({ url: 'https://ipfs.infura.io:5001/api/v0' });
+        setIPFSClient(client);
+        console.log('client', client);
+      } catch (error: any) {
+        console.log(error);
+      }
     };
     createIPFSClient();
   }, []);

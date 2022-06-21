@@ -21,7 +21,7 @@ type ProjectFormProps = {
 };
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }) => {
-  const { uploadImageToIPFS } = useContext(GlobalContext);
+  const { uploadImageToIPFS, setAlert } = useContext(GlobalContext);
   const [project, setProject] = useState<Project>({
     title: '',
     description: '',
@@ -68,12 +68,25 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
     }
   };
 
-  const handleSubmit = () => {
-    checkErrors();
-    console.log('errors', errors);
-    if (errors.length > 0) return;
-    onSubmit(project);
-    handleClose();
+  const handleSubmit = async () => {
+    try {
+      checkErrors();
+      console.log('errors', errors);
+      if (errors.length > 0) return;
+      onSubmit(project);
+      handleClose();
+      setAlert({
+        description: 'Your project has been accepted, thank you!',
+        severity: 'info',
+        open: true,
+      });
+    } catch (error: any) {
+      setAlert({
+        description: `Sorry, something went wrong : ${error.message} `,
+        severity: 'error',
+        open: true,
+      });
+    }
   };
 
   return (
