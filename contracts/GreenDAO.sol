@@ -22,6 +22,8 @@ contract GreenDAO {
         address[] hasVotedFor;
     }
     struct Project {
+        // added this to pass voting tests
+        bool exists;
         string data;
         uint256 votes;
         address proposedBy;
@@ -114,10 +116,12 @@ contract GreenDAO {
 
         require(
             projects[roundId][_proposedRecipient].proposedBy == address(0),
-            "This project has already been submited"
+            "This project has already been submitted"
         );
 
         Project memory project;
+        //added to pass voting tests
+        project.exists = true;
         project.data = _data;
         project.proposedBy = msg.sender;
 
@@ -134,15 +138,16 @@ contract GreenDAO {
 
         // Check that the project exist for this round
         require(
-            projects[getCurrentRound()][projectAddress].proposedBy ==
-                address(0),
+            // changed this to pass tests... previous code reverted in test: project is not in this round
+            projects[getCurrentRound()][projectAddress].exists == true,
             "This project is not part of the current round"
         );
 
         members[msg.sender].votes -= nbOfVote;
-        members[msg.sender].hasVotedFor[
-            members[msg.sender].hasVotedFor.length
-        ] = projectAddress;
+        // changed this to get tests to run
+        members[msg.sender].hasVotedFor.push(projectAddress);
+        //     members[msg.sender].hasVotedFor.length
+        // ] = projectAddress;
         projects[getCurrentRound()][projectAddress].votes += nbOfVote;
     }
 
@@ -194,7 +199,6 @@ contract GreenDAO {
         uint roundId = getCurrentRound();
         return projects[roundId][project].votes;
     }
-
 
     function findWinners(uint256 roundId)
         internal
@@ -280,7 +284,7 @@ contract GreenDAO {
         return members[user].votes;
     }
 
-    function getMembersLastVotes(address user)
+    function getProjectsMemberVotedFor(address user)
         public
         view
         returns (address[] memory)
