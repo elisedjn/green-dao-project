@@ -151,7 +151,6 @@ describe('Funds Tests', function () {
 
         await contract.distribute2Projects();
         const [winAddr, winInfo] = await contract.getLastWinners();
-        console.log(winAddr);
         expect([projectAddress3, projectAddress2].includes(winAddr[0]));
         expect([projectAddress3, projectAddress2].includes(winAddr[1]));
         expect(winAddr[2]).to.equal(projectAddress4);

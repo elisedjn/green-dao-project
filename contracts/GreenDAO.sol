@@ -196,23 +196,29 @@ contract GreenDAO {
         for (uint256 i = 0; i < projectsPerRound[roundId].length; i++) {
             address projectAddr = projectsPerRound[roundId][i];
             uint256 votes = projects[roundId][projectAddr].votes;
-            if (votes > firstVotes) {
-                // A new first is found!
-                // second become third
-                thirdVotes = secondVotes;
-                //first become second
-                secondVotes = firstVotes;
-                // new first setup
-                firstVotes = votes;
-            } else if (votes > secondVotes) {
-                // A new second is found!
-                // second become third
-                thirdVotes = secondVotes;
-                //new second setup
-                secondVotes = votes;
-            } else if (votes > thirdVotes) {
-                //A new third is found!
-                thirdVotes = votes;
+            if (
+                votes != firstVotes &&
+                votes != secondVotes &&
+                votes != thirdVotes
+            ) {
+                if (votes > firstVotes) {
+                    // A new first is found!
+                    // second become third
+                    thirdVotes = secondVotes;
+                    //first become second
+                    secondVotes = firstVotes;
+                    // new first setup
+                    firstVotes = votes;
+                } else if (votes > secondVotes) {
+                    // A new second is found!
+                    // second become third
+                    thirdVotes = secondVotes;
+                    //new second setup
+                    secondVotes = votes;
+                } else if (votes > thirdVotes) {
+                    //A new third is found!
+                    thirdVotes = votes;
+                }
             }
         }
 
