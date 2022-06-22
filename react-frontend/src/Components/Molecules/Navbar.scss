@@ -18,13 +18,19 @@
     justify-content: center;
     gap: 0px;
     .icon{
-      width: 80px;
+      width: 100px;
       color: white !important;
     }
-    h3 {
-      display: flex;
-      align-items: center;
+    .D2R-name {
+      padding: 0px;
+      h3 {
+        display: flex;
+        align-items: center;
+        font-size: 30px;
+        margin: 0px;
+      }
     }
+    
   }
 
   .nav-links{
@@ -49,12 +55,6 @@
         background-color: transparent !important;
       }
     }  
-  }
-
-  h3 {
-    font-size: 30px;
-    display: inline;
-    height: 60px;
   }
 
   @media screen and (max-width: 600px) {

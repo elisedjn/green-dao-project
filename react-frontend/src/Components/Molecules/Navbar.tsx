@@ -18,7 +18,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
         <div className='icon'>
           <PlanetIcon />
         </div>
-        <h3>D2R</h3>
+        <div className='D2R-name'>
+          <h3>D2R</h3>
+          <span>Donate to Regenerate</span>
+        </div>
       </Link>
       <div className='nav-links'>
         <Button

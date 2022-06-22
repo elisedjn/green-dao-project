@@ -1,0 +1,14 @@
+.remaining-time{
+  width: 100vw;
+  padding: 20px;
+  background-color: rgba(49, 87, 44, 0.9);
+  position: sticky;
+  top: 120px;
+  z-index: 1000;
+  text-align: center;
+  color:white;
+  font-weight: 500;
+  span{
+    font-weight: 700;
+  }
+}

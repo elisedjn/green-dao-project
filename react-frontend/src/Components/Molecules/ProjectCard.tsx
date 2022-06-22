@@ -15,7 +15,7 @@ type ProjectCardType = {
 
 const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member }) => {
   const { image, title, description, address, link = '' } = project;
-  const { setAlert, voteForProject, isMember } = useContext(GlobalContext);
+  const { setAlert, voteForProject, isMember, roundStatus } = useContext(GlobalContext);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   return (
@@ -25,7 +25,7 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
           <div
             className='votes-per-project'
             onClick={() =>
-              !isMember
+              !isMember || roundStatus !== 'vote'
                 ? () => {}
                 : !member?.votesRemaining
                 ? setAlert({
@@ -50,7 +50,7 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
         <CardActions className='project-bottom'>
           <div className='fade' />
 
-          {inMemberPage && isMember ? (
+          {inMemberPage && isMember && roundStatus === 'vote' ? (
             <>
               <Button
                 onClick={() =>

@@ -18,6 +18,7 @@ type GlobalContextType = {
   connectWallet: () => Promise<void>;
   ourImpact: DAOImpact | null;
   setAlert: React.Dispatch<React.SetStateAction<AlertInfo>>;
+  timeVal: number;
 };
 
 interface ContextProps {
@@ -37,6 +38,7 @@ export const GlobalContext = createContext<GlobalContextType>({
   connectWallet: async () => {},
   ourImpact: null,
   setAlert: () => {},
+  timeVal: 0,
 });
 
 const contractAddress = '';
@@ -151,6 +153,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   //Round
   const [roundStatus, setRoundStatus] = useState<'propose' | 'vote'>('propose');
   const [contractStartTime, setContractStartTime] = useState<null | number>(null);
+  const [timeVal, setTimeVal] = useState<number>(0);
 
   //Other
   const [ourImpact, setOurImpact] = useState<DAOImpact | null>(null);
@@ -442,6 +445,13 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     getRoundStatus();
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeVal(getPeriodRemainingTime());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   //Projects
   useEffect(() => {
     getHighlightedProjects();
@@ -482,6 +492,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         submitNewProject,
         //Rounds
         roundStatus,
+        timeVal,
         //Other
         ourImpact,
         setAlert,

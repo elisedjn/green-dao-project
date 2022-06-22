@@ -7,16 +7,25 @@ import Footer from '../Components/Molecules/Footer';
 import './MemberPage.scss';
 import ProjectForm from '../Components/Molecules/ProjectForm';
 import { GlobalContext } from '../utils/GlobalContext';
+import RemainingTime from '../Components/Atoms/RemainingTime';
 
 const MemberPage = () => {
   const [openProjectForm, setOpenProjectForm] = useState<boolean>(false);
 
-  const { currentProjects, submitNewProject, isMember, roundStatus, member, setAlert } =
-    useContext(GlobalContext);
+  const {
+    currentProjects,
+    submitNewProject,
+    isMember,
+    roundStatus,
+    member,
+    setAlert,
+    timeVal,
+  } = useContext(GlobalContext);
 
   return (
     <div className='member-page'>
       <Navbar onMemberPage />
+      <RemainingTime time={timeVal} isVote={roundStatus === 'vote'} />
       <div className='inner-page'>
         <Subtitle>Donate to Regenerate Rules</Subtitle>
         <div className='dao-rules'>
