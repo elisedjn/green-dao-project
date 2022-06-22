@@ -150,6 +150,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
   //Round
   const [roundStatus, setRoundStatus] = useState<'propose' | 'vote'>('propose');
+  const [contractStartTime, setContractStartTime] = useState<null | number>(null);
 
   //Other
   const [ourImpact, setOurImpact] = useState<DAOImpact | null>(null);
@@ -216,6 +217,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         setUserAddress(addr1 ?? null);
         setIsConnected(!!addr1);
         await checkIfMember();
+        if (sgr1 && contractInstance) {
+          await contractInstance.connect(sgr1);
+        }
       } else {
         setAlert({
           open: true,
@@ -232,13 +236,22 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const checkIfMember = async () => {
     try {
       //smart contract = check if a user is member of the DAO
-      setIsMember(true);
-      setMember({
-        address: userAddress ?? '',
-        lastVotes: ['0x01', '0x06'],
-        votesRemaining: 3,
-      });
-      console.log('Check if Member');
+      if (!!contractInstance) {
+        const answer = await contractInstance.isMember(userAddress);
+        setIsMember(answer);
+        if (answer) {
+          const member = await contractInstance.members(userAddress);
+          setMember(member);
+        }
+      } else {
+        // WARNING : For testing only
+        setIsMember(true);
+        setMember({
+          address: userAddress ?? '',
+          lastVotes: ['0x01', '0x06'],
+          votesRemaining: 3,
+        });
+      }
     } catch (error: any) {
       setAlert({
         open: true,
@@ -252,9 +265,17 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     try {
       if (!!member) {
         console.log('Giving ', nbVote, ' votes to ', projectAddress);
+        await contractInstance?.voteForProject(projectAddress, nbVote);
         setMember((m) =>
           !m ? null : { ...m, votesRemaining: (m?.votesRemaining ?? 0) - nbVote }
         );
+      } else {
+        setAlert({
+          open: true,
+          description:
+            'Only the members can vote, we would be happy to welcome you in the DAO',
+          severity: 'info',
+        });
       }
     } catch (error: any) {
       setAlert({
@@ -268,11 +289,20 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   //Projects
   const getHighlightedProjects = async () => {
     try {
-      // get the projects for the home page
-      // smart contract = last round winner projects
-      // data on IPFS
-      console.log('getHighlightedProjects');
-      setHighlightedProjects(highlightedProjectsSample);
+      if (!!contractInstance) {
+        const [projectsAddr, projects] = await contractInstance.getLastWinners();
+        let fullProjects: Project[] = [];
+        for (let i = 0; i < projects?.length ?? 0; i++) {
+          const data = await getProjectDataFromIPFS(projects[i].data);
+          if (data) {
+            fullProjects.push({ ...data, votes: projects[i].votes });
+          }
+        }
+        setHighlightedProjects(fullProjects);
+      } else {
+        console.log('getHighlightedProjects');
+        setHighlightedProjects(highlightedProjectsSample);
+      }
     } catch (error: any) {
       setAlert({
         open: true,
@@ -284,11 +314,20 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
   const getCurrentProjects = async () => {
     try {
-      // get the projects for the member's page
-      // smart contract = actual projects
-      // data on IPFS
-      console.log('getCurrentProjects');
-      setCurrentProjects(currentProjectsSample);
+      if (!!contractInstance) {
+        const [projectsAddr, projects] = await contractInstance.getCurrentProjects();
+        let fullProjects: Project[] = [];
+        for (let i = 0; i < projects?.length ?? 0; i++) {
+          const data = await getProjectDataFromIPFS(projects[i].data);
+          if (data) {
+            fullProjects.push({ ...data, votes: projects[i].votes });
+          }
+        }
+        setCurrentProjects(fullProjects);
+      } else {
+        console.log('getCurrentProjects');
+        setCurrentProjects(currentProjectsSample);
+      }
     } catch (error: any) {
       setAlert({
         open: true,
@@ -299,13 +338,14 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   };
 
   const submitNewProject = async (project: Project) => {
-    // IPFS = save the data
     try {
       const added = await IPFSClient?.add(JSON.stringify(project));
       const data = `https://ipfs.infura.io/ipfs/${added?.path}`;
       console.log('data of new project', data);
 
-      // smart contract = create the project
+      if (!!contractInstance) {
+        await contractInstance.addProject(data, project.address);
+      }
 
       console.log('submitNewProject');
       await getCurrentProjects();
@@ -322,7 +362,12 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   //Rounds
   const getRoundStatus = async () => {
     try {
-      // smart contract = get the actual round status
+      if (!!contractInstance) {
+        const status = await contractInstance.getCurrentRoundStatus();
+        setRoundStatus(status);
+        const start = await contractInstance.start();
+        setContractStartTime(start);
+      }
       console.log('getRoundStatus');
     } catch (error: any) {
       console.log(error);
@@ -334,10 +379,34 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     }
   };
 
+  const getPeriodRemainingTime = () => {
+    //returns a number in miliSeconds
+    const oneWeekInMiliSec = 7 * 24 * 3600 * 1000;
+    const roundDuration = 4 * oneWeekInMiliSec;
+    const proposalDuration = 3 * oneWeekInMiliSec;
+    const duration = Date.now() - (contractStartTime ?? 0) * 1000; //contractStartTime is in seconds since unix epoch
+    if (duration % roundDuration < proposalDuration) {
+      //Proposal phase
+      return proposalDuration - (duration % roundDuration);
+    } else {
+      //Vote phase
+      return roundDuration - (duration % roundDuration);
+    }
+  };
+
   //Other
   const getDOAImpact = async () => {
     try {
       //smart contract = one function that gives back all the info
+      if (!!contractInstance) {
+        const tokenAddr = await contractInstance.token();
+        const balance = 0; //Deal with IERC20 address to check that ?
+        const members = await contractInstance.DAOMembers().length;
+        const projectsContributed = await contractInstance.totalPaidProjects();
+        const donators = await contractInstance.anonymousDonations();
+        const alreadySent = (await contractInstance.totalCollected()) - balance;
+        setOurImpact({ balance, members, projectsContributed, donators, alreadySent });
+      }
       console.log('getDAOImpact');
       setOurImpact({
         balance: 10,
