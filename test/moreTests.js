@@ -39,6 +39,7 @@ describe('GreenDAO', function () {
     owner = ethers.provider.getSigner(0);
     member1 = ethers.provider.getSigner(1);
     member2 = ethers.provider.getSigner(2);
+    member3 = ethers.provider.getSigner(10);
 
     nonmember = ethers.provider.getSigner(3);
     project1 = ethers.provider.getSigner(4);
@@ -61,11 +62,13 @@ describe('GreenDAO', function () {
     // Giving 500 tokens to the other addresses
     const addr1 = await member1.getAddress();
     const addr2 = await member2.getAddress();
-    const addr3 = await nonmember.getAddress();
+    const addr3 = await member3.getAddress();
+    const addr4 = await nonmember.getAddress();
     const amount = BigNumber.from(10).pow(18).mul(500);
     await token.transfer(addr1, amount);
     await token.transfer(addr2, amount);
     await token.transfer(addr3, amount);
+    await token.transfer(addr4, amount);
 
     const GreenDAO = await ethers.getContractFactory('GreenDAO');
     const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote);
@@ -205,7 +208,7 @@ describe('GreenDAO', function () {
 
   describe('find and fund winning projects', () => {
     beforeEach(async () => {
-      const donation = BigNumber.from(10).pow(18).mul(240);
+      const donation = BigNumber.from(10).pow(18).mul(400);
 
       //donate to be member (1)
       await token.connect(member1).approve(contract.address, donation);
@@ -213,6 +216,9 @@ describe('GreenDAO', function () {
       //member 2
       await token.connect(member2).approve(contract.address, donation);
       await contract.connect(member2).donate(donation);
+      //member 3
+      await token.connect(member3).approve(contract.address, donation);
+      await contract.connect(member3).donate(donation);
 
 
       // then add multiple projects to vote on
@@ -220,17 +226,18 @@ describe('GreenDAO', function () {
       const projectAddress2 = await project2.getAddress();
       const projectAddress3 = await project3.getAddress();
       const projectAddress4 = await project4.getAddress();
-      const projectAddress5 = await project5.getAddress();
+      // const projectAddress5 = await project5.getAddress();
 
       await contract.connect(member2).addProject('new project', projectAddress1);
       await contract.connect(member2).addProject('new project', projectAddress2);
-      await contract.connect(member2).addProject('new project', projectAddress3);
+      await contract.connect(member3).addProject('new project', projectAddress3);
       await contract.connect(member1).addProject('new project', projectAddress4);
-      await contract.connect(member1).addProject('new project', projectAddress5);
+      // await contract.connect(member1).addProject('new project', projectAddress5);
       evm_increaseTime(oneWeekInSec *3);
 
       const status = await contract.getCurrentRoundStatus();
       console.log("current status before each", status);
+
 
     });
 
@@ -241,30 +248,30 @@ describe('GreenDAO', function () {
       const projectAddress1 = await project1.getAddress();
       const projectAddress2 = await project2.getAddress();
       const projectAddress3 = await project3.getAddress();
-      const projectAddress4 = await project1.getAddress();
-      const projectAddress5 = await project1.getAddress();
+      const projectAddress4 = await project4.getAddress();
+      // const projectAddress5 = await project5.getAddress();
       // 1st place votes > 2nd place votes > 3rd place votes
-      await contract.connect(member2).voteForProject(projectAddress1, 3);
-      await contract.connect(member2).voteForProject(projectAddress2, 2);
-      await contract.connect(member2).voteForProject(projectAddress3, 1);
-      await contract.connect(member1).voteForProject(projectAddress1, 3);
-      await contract.connect(member1).voteForProject(projectAddress2, 2);
-      await contract.connect(member1).voteForProject(projectAddress3, 1);
+      await contract.connect(member2).voteForProject(projectAddress1, 1);
+      await contract.connect(member2).voteForProject(projectAddress2, 3);
+      await contract.connect(member3).voteForProject(projectAddress3, 3);
+      // await contract.connect(member1).voteForProject(projectAddress1, 1);
+      await contract.connect(member1).voteForProject(projectAddress4, 2);
+      await contract.connect(member3).voteForProject(projectAddress3, 3);
       const round0 = await contract.getCurrentRound();
-      console.log("current round0", round0)
 
-
+      // evm_increaseTime(oneWeekInSec * 3);
       await network.provider.send("evm_increaseTime", [oneWeekInSec * 3]);
       await network.provider.send("evm_mine");
 
       const nextRound = await contract.getCurrentRound();
+
+      console.log("project1", projectAddress1);
+      console.log("project2", projectAddress2);
+      console.log("project3", projectAddress3);
+      console.log("project4", projectAddress4);
+
       console.log("current round", nextRound)
 
-      // find winners and disribute funds to set state
-      await contract.distributeToProjects();
-
-      // const winners = await contract.getLastWinners();
-      // console.log(winners);
 
       //only two winners
 
