@@ -142,7 +142,6 @@ contract GreenDAO {
         members[msg.sender].votes -= nbOfVote;
         members[msg.sender].hasVotedFor.push(projectAddress);
         projects[getCurrentRound()][projectAddress].votes += nbOfVote;
-
     }
 
     function distribute2Projects() external {
@@ -158,38 +157,32 @@ contract GreenDAO {
         require(roundId != getCurrentRound(), "This round is not finished yet");
         rounds[roundId].hasBeenPaid = true;
         address[] memory winners = findWinners(roundId);
-        rounds[roundId].winningProjects = winners;
-        for (uint i = 0; i < winners.length; i++) {
-          console.log("these won", winners[i]);
-        }
         totalPaidProjects += winners.length;
 
         //Get the number of votes for all the winner projects
         uint256 totalVotesForWinners;
         for (uint256 i = 0; i < winners.length; i++) {
-            // console.log(winners);
             address project = winners[i];
-            console.log(winners[i]);
             uint256 votes = projects[roundId][project].votes;
             totalVotesForWinners += votes;
-            console.log("these are the total votes");
         }
         //Send the transactions
         for (uint256 i = 0; i < winners.length; i++) {
             address project = winners[i];
-            console.log("these win", winners[i]);
-            uint256 votes = projects[roundId][project].votes;
-            uint256 amount = rounds[roundId].balance *
-                (votes / totalVotesForWinners);
-            SafeERC20.safeTransferFrom(
-                IERC20(token),
-                address(this),
-                project,
-                amount
-            );
+            if (project != address(0)) {
+                rounds[roundId].winningProjects.push(project);
+                uint256 votes = projects[roundId][project].votes;
+                uint256 amount = rounds[roundId].balance *
+                    (votes / totalVotesForWinners);
+                SafeERC20.safeTransferFrom(
+                    IERC20(token),
+                    address(this),
+                    project,
+                    amount
+                );
+            }
         }
     }
-
 
     function findWinners(uint256 roundId)
         internal
@@ -200,64 +193,40 @@ contract GreenDAO {
         uint256 secondVotes;
         uint256 thirdVotes;
 
-
         for (uint256 i = 0; i < projectsPerRound[roundId].length; i++) {
             address projectAddr = projectsPerRound[roundId][i];
             uint256 votes = projects[roundId][projectAddr].votes;
-            if (votes > firstVotes) {
-                // A new first is found!
-                // second become third
-                thirdVotes = secondVotes;
-                //first become second
-                secondVotes = firstVotes;
-                // new first setup
-                firstVotes = votes;
-
-            } else if (votes > secondVotes) {
-                // A new second is found!
-                // second become third
-                thirdVotes = secondVotes;
-                //new second setup
-                secondVotes = votes;
-
-            } else if (votes > thirdVotes) {
-                //A new third is found!
-                thirdVotes = votes;
+            if (
+                votes != firstVotes &&
+                votes != secondVotes &&
+                votes != thirdVotes
+            ) {
+                if (votes > firstVotes) {
+                    // A new first is found!
+                    // second become third
+                    thirdVotes = secondVotes;
+                    //first become second
+                    secondVotes = firstVotes;
+                    // new first setup
+                    firstVotes = votes;
+                } else if (votes > secondVotes) {
+                    // A new second is found!
+                    // second become third
+                    thirdVotes = secondVotes;
+                    //new second setup
+                    secondVotes = votes;
+                } else if (votes > thirdVotes) {
+                    //A new third is found!
+                    thirdVotes = votes;
+                }
             }
         }
 
+        address[] memory firstOnes = new address[](10);
+        address[] memory secondOnes = new address[](10);
+        address[] memory thirdOnes = new address[](10);
 
-        //find the number of winners in each place
-        uint fstWinners;
-        uint scdWinners;
-        uint thrdWinners;
-
-        for (uint i = 0; i < projectsPerRound[roundId].length; i++) {
-          address projectAddr = projectsPerRound[roundId][i];
-          uint votes = projects[roundId][projectAddr].votes;
-
-          if (votes == firstVotes) {
-            fstWinners ++;
-
-          } else if (votes == secondVotes) {
-            scdWinners ++;
-
-          } else if (votes == thirdVotes) {
-            thrdWinners ++;
-          }
-        }
-          console.log(fstWinners, "in 1st");
-          console.log(scdWinners, "in 2nd");
-          console.log(thrdWinners, "in 3rd");
-
-
-          // RILEY: dynamically sized arrays that change based on the number
-          //        of even if there are multiple ties
-        address[] memory firstOnes = new address[](fstWinners);
-        address[] memory secondOnes = new address[](scdWinners);
-        address[] memory thirdOnes = new address[](thrdWinners);
-
-        for (uint256 i = 0; i < 4; i++) {
+        for (uint256 i = 0; i < projectsPerRound[roundId].length; i++) {
             address projectAddr = projectsPerRound[roundId][i];
             uint256 votes = projects[roundId][projectAddr].votes;
             if (votes == firstVotes) {
@@ -281,24 +250,19 @@ contract GreenDAO {
             }
         }
 
-          console.log("second place", secondOnes[0]);
-          console.log("third place", thirdOnes[0]);
-
-        address[] memory allWinnersSorted = new address[](fstWinners + scdWinners + thrdWinners);
+        address[] memory allWinnersSorted = new address[](30);
         uint256 winnerIndex;
-        for (uint256 i = 0; i < fstWinners; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             allWinnersSorted[winnerIndex] = firstOnes[i];
             winnerIndex++;
         }
-        for (uint256 i = 0; i < scdWinners; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             allWinnersSorted[winnerIndex] = secondOnes[i];
             winnerIndex++;
-
         }
-        for (uint256 i = 0; i < thrdWinners; i++) {
+        for (uint256 i = 0; i < 10; i++) {
             allWinnersSorted[winnerIndex] = thirdOnes[i];
             winnerIndex++;
-
         }
 
         return allWinnersSorted;
