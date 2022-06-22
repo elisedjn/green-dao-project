@@ -101,24 +101,21 @@ describe('GreenDAO', function () {
     });
   });
 
-  // describe('handle incoming donations', () => {
-  //   it('Should add donation value', async function () {
-  //     const donation = BigNumber.from(10).pow(18).mul(40);
+  describe('incoming donations', () => {
+    it('Should add donation value', async function () {
+      const donation = BigNumber.from(10).pow(18).mul(40);
+      await token.connect(member1).approve(contract.address, donation);
+      await contract.connect(member1).donate(donation);
+      expect(await contract.totalCollected()).to.equal(donation);
+      expect(await token.balanceOf(contract.address)).to.equal(donation);
+    });
 
-  //     await token.connect(member1).approve(contract.address, donation);
-  //     await contract.connect(member1).donate(donation);
-  //     expect(await contract.totalCollected()).to.equal(donation);
-  //     expect(await token.balanceOf(contract.address)).to.equal(donation);
-  //   });
-
-  //   it('Should assign correct number of votes to member', async function () {
-  //     const donation = BigNumber.from(10).pow(18).mul(90);
-  //     await token.connect(member2).approve(contract.address, donation);
-  //     await contract.connect(member2).donate(donation);
-  //     expect(await contract.getMemberRemainingVotes(await member2.getAddress())).to.equal(
-  //       2
-  //     );
-  //   });
+    it('Should assign correct number of votes to member', async function () {
+      const donation = BigNumber.from(10).pow(18).mul(90);
+      await token.connect(member2).approve(contract.address, donation);
+      await contract.connect(member2).donate(donation);
+      expect((await contract.members(await member2.getAddress())).votes).to.equal(2);
+    });
 
   //   it('Should record anonymous donations', async function () {
   //     const donation = BigNumber.from(10).pow(18).mul(20);
@@ -129,34 +126,38 @@ describe('GreenDAO', function () {
   //   });
   // });
 
-  // describe('proposal creation', () => {
-  //   it('Should propose a new project', async function () {
-  //     // First member 2 donate to become a member and be able to add a project;
-  //     const donation = BigNumber.from(10).pow(18).mul(90);
-  //     await token.connect(member2).approve(contract.address, donation);
-  //     await contract.connect(member2).donate(donation);
 
-  //     const projectAddress = await project1.getAddress();
-  //     await contract.connect(member2).addProject('new project', projectAddress);
-  //     const currentProjects = await contract.getCurrentProjects();
-  //     const isInProjects = currentProjects.find(
-  //       (project) => project.proposedBy == member2.address
-  //     );
-  //     expect(!!isInProjects);
-  //   });
+  describe('proposal creation', () => {
+    beforeEach(async () => {
+      // First 2 members donate to become a member and be able to add a project;
+      const donation = BigNumber.from(10).pow(18).mul(40);
+      await token.connect(member2).approve(contract.address, donation);
+      await contract.connect(member2).donate(donation);
 
-  //   // // does not revert. contract allows a second member to propose an identical project,
-  //   // // or the same member to propose it twice
-  //   // it('Should revert duplicate proposal', async function () {
-  //   //   const donation = BigNumber.from(10).pow(18).mul(40);
-  //   //   await token.connect(member1).approve(contract.address, donation);
-  //   //   await contract.connect(member1).donate(donation);
+      await token.connect(member1).approve(contract.address, donation);
+      await contract.connect(member1).donate(donation);
+    });
 
-  //   //   const projectAddress = await project1.getAddress();
-  //   //   await expect(
-  //   //     contract.connect(member1).addProject('new project', projectAddress)
-  //   //   ).to.be.revertedWith('Project has already been proposed');
-  //   // });
+    it('Should propose a new project', async function () {
+      const projectAddress = await project1.getAddress();
+      await contract.connect(member1).addProject('new project', projectAddress);
+      const [currentAddresses, currentProjects] = await contract.getCurrentProjects();
+      const isInProjects = currentAddresses.includes(projectAddress);
+      expect(!!isInProjects);
+    });
+
+    it('Should revert duplicate proposal', async function () {
+      const projectAddress = await project1.getAddress();
+      await contract.connect(member1).addProject('new project', projectAddress);
+      // member 1 tries to same propose project again
+      await expect(
+        contract.connect(member1).addProject('new project', projectAddress)
+      ).to.be.revertedWith('This project has already been submitted');
+      // member 2 tries to propose project already created by member1
+      await expect(
+        contract.connect(member2).addProject('new project', projectAddress)
+      ).to.be.revertedWith('This project has already been submitted');
+    });
 
   //   it('Should revert proposal from non member ', async function () {
   //     const projectAddress = await project1.getAddress();
