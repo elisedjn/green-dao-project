@@ -68,9 +68,11 @@ describe('GreenDAO', function () {
   });
 
   describe('apply voting credits', () => {
+
+
     beforeEach(async () => {
       // First member 2 donates to become a member and be able to add a project;
-      const donation = BigNumber.from(10).pow(18).mul(120);
+      const donation = BigNumber.from(10).pow(18).mul(160);
       await token.connect(member2).approve(contract.address, donation);
       await contract.connect(member2).donate(donation);
       // then add 2 projects so they can be voted on
@@ -88,7 +90,7 @@ describe('GreenDAO', function () {
     it('Should subtract the used vote', async function () {
       // member 2 should have 3 votes, vote on each project and have 0 left
       const member = await contract.members(await member2.getAddress());
-      expect(member.votes).to.equal(0);
+      expect(member.votes).to.equal(1);
     });
 
     it('Should add the used votes to project vote count', async function () {
@@ -107,6 +109,20 @@ describe('GreenDAO', function () {
       expect(p1Votes).to.equal(2);
       expect(p2Votes).to.equal(1);
     });
+
+    it('Should revert if member does not have enough votes for transaction', async function () {
+      const projectAddress1 = await project1.getAddress();
+      const projectAddress2 = await project2.getAddress();
+
+      await expect (
+        contract.connect(member2).voteForProject(projectAddress1, 2)
+      ).to.be.revertedWith('You do not have enough votes, try voting with less');
+
+      await contract.connect(member2).voteForProject(projectAddress2, 1);
+      await expect(
+        contract.connect(await member2).voteForProject(projectAddress1, 1)
+      ).to.be.revertedWith('You are out of votes for this round');
+    })
 
     it('Should provide an array of projects the member voted for', async function () {
       expect(
