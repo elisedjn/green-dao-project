@@ -174,6 +174,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const connectToContract = async () => {
     try {
       if (signer) {
+        //The user has Metamask connected
         const contract = await new ethers.Contract(
           contractAddress,
           contractJSON.abi,
@@ -181,6 +182,18 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         );
         setContractInstance(contract);
         await checkIfMember();
+      } else {
+        //The user does not have Metamask connected
+        const provider = new ethers.providers.AlchemyProvider(
+          'maticmum',
+          process.env.REACT_APP_ALCHEMY_URL_API_KEY
+        );
+        const contract = await new ethers.Contract(
+          contractAddress,
+          contractJSON.abi,
+          provider
+        );
+        setContractInstance(contract);
       }
     } catch (error) {
       console.log(error);
