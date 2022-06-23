@@ -1,9 +1,11 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { AlertInfo, DAOImpact, Member, Project } from './types';
-import { create, IPFSHTTPClient, urlSource } from 'ipfs-http-client';
+import { create, IPFSHTTPClient } from 'ipfs-http-client';
 import { Alert, Snackbar } from '@mui/material';
-import contractJSON from './GreenDao.json';
+import contractJSON from './GreenDAO.json';
+import { BNtoNumber } from './helpers';
+import DonateForm from '../Components/Molecules/DonateForm';
 
 type GlobalContextType = {
   isConnected: boolean;
@@ -19,6 +21,7 @@ type GlobalContextType = {
   ourImpact: DAOImpact | null;
   setAlert: React.Dispatch<React.SetStateAction<AlertInfo>>;
   timeVal: number;
+  setOpenDonationForm: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 interface ContextProps {
@@ -39,9 +42,11 @@ export const GlobalContext = createContext<GlobalContextType>({
   ourImpact: null,
   setAlert: () => {},
   timeVal: 0,
+  setOpenDonationForm: () => {},
 });
 
-const contractAddress = '';
+const contractAddress = '0x7e56d931c474c2874D688226cc9eF7295A6a0cB7';
+const ROUND_STATUS: ('propose' | 'vote')[] = ['propose', 'vote'];
 
 const currentProjectsSample: Project[] = [
   {
@@ -155,6 +160,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const [contractStartTime, setContractStartTime] = useState<null | number>(null);
   const [timeVal, setTimeVal] = useState<number>(0);
 
+  //Donation
+  const [openDonationForm, setOpenDonationForm] = useState<boolean>(false);
+
   //Other
   const [ourImpact, setOurImpact] = useState<DAOImpact | null>(null);
   const [alert, setAlert] = useState<AlertInfo>({ open: false });
@@ -165,9 +173,15 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   // Contract and IPFS
   const connectToContract = async () => {
     try {
-      const contract = null; // await new ethers.Contract(contractAddress, contractJSON);
-      console.log('contract', contract);
-      setContractInstance(contract);
+      if (signer) {
+        const contract = await new ethers.Contract(
+          contractAddress,
+          contractJSON.abi,
+          signer
+        );
+        setContractInstance(contract);
+        await checkIfMember();
+      }
     } catch (error) {
       console.log(error);
     }
@@ -192,7 +206,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     try {
       if (!IPFSClient) return;
       const CID = IPFSlink.split('/ipfs/')[1] ?? '';
-      console.log(CID);
       const stream = IPFSClient.cat(CID);
       const decoder = new TextDecoder();
       let data = '';
@@ -200,8 +213,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         // chunks of data are returned as a Uint8Array, convert it back to a string
         data += decoder.decode(chunk, { stream: true });
       }
-      console.log('data', JSON.parse(data));
-
       return JSON.parse(data) as Project;
     } catch (error: any) {
       console.log(error.message);
@@ -246,14 +257,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
           const member = await contractInstance.members(userAddress);
           setMember(member);
         }
-      } else {
-        // WARNING : For testing only
-        setIsMember(true);
-        setMember({
-          address: userAddress ?? '',
-          lastVotes: ['0x01', '0x06'],
-          votesRemaining: 5,
-        });
       }
     } catch (error: any) {
       setAlert({
@@ -267,7 +270,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const voteForProject = async (projectAddress: string, nbVote: number) => {
     try {
       if (!!member) {
-        console.log('Giving ', nbVote, ' votes to ', projectAddress);
         await contractInstance?.voteForProject(projectAddress, nbVote);
         setMember((m) =>
           !m ? null : { ...m, votesRemaining: (m?.votesRemaining ?? 0) - nbVote }
@@ -293,17 +295,22 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const getHighlightedProjects = async () => {
     try {
       if (!!contractInstance) {
-        const [projectsAddr, projects] = await contractInstance.getLastWinners();
-        let fullProjects: Project[] = [];
-        for (let i = 0; i < projects?.length ?? 0; i++) {
-          const data = await getProjectDataFromIPFS(projects[i].data);
-          if (data) {
-            fullProjects.push({ ...data, votes: projects[i].votes });
+        const currentRound = await contractInstance.getCurrentRound();
+        if (BNtoNumber(currentRound) > 1) {
+          const [projectsAddr, projects] = await contractInstance.getLastWinners();
+          let fullProjects: Project[] = [];
+          for (let i = 0; i < projects?.length ?? 0; i++) {
+            const data = await getProjectDataFromIPFS(projects[i].data);
+            if (data) {
+              fullProjects.push({ ...data, votes: projects[i].votes });
+            }
           }
+          setHighlightedProjects(fullProjects);
+        } else {
+          console.log('It is the first round!');
+          setHighlightedProjects(highlightedProjectsSample);
         }
-        setHighlightedProjects(fullProjects);
       } else {
-        console.log('getHighlightedProjects');
         setHighlightedProjects(highlightedProjectsSample);
       }
     } catch (error: any) {
@@ -319,6 +326,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     try {
       if (!!contractInstance) {
         const [projectsAddr, projects] = await contractInstance.getCurrentProjects();
+        console.log('PROJECTS', projects);
         let fullProjects: Project[] = [];
         for (let i = 0; i < projects?.length ?? 0; i++) {
           const data = await getProjectDataFromIPFS(projects[i].data);
@@ -328,7 +336,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         }
         setCurrentProjects(fullProjects);
       } else {
-        console.log('getCurrentProjects');
         setCurrentProjects(currentProjectsSample);
       }
     } catch (error: any) {
@@ -344,13 +351,11 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     try {
       const added = await IPFSClient?.add(JSON.stringify(project));
       const data = `https://ipfs.infura.io/ipfs/${added?.path}`;
-      console.log('data of new project', data);
 
       if (!!contractInstance) {
         await contractInstance.addProject(data, project.address);
       }
 
-      console.log('submitNewProject');
       await getCurrentProjects();
     } catch (error: any) {
       console.log(error);
@@ -367,11 +372,10 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     try {
       if (!!contractInstance) {
         const status = await contractInstance.getCurrentRoundStatus();
-        setRoundStatus(status);
+        setRoundStatus(ROUND_STATUS[status]);
         const start = await contractInstance.start();
-        setContractStartTime(start);
+        setContractStartTime(BNtoNumber(start));
       }
-      console.log('getRoundStatus');
     } catch (error: any) {
       console.log(error);
       setAlert({
@@ -397,27 +401,58 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     }
   };
 
+  //Donation
+  const sendDonation = async (amount: number) => {
+    try {
+      if (!!contractInstance) {
+        const donation = BigNumber.from(10).pow(18).mul(amount);
+        // APPROVE TO DO
+        const answer = await contractInstance.donate(donation);
+        console.log('DONATION ANSWER', answer);
+        await checkIfMember();
+      }
+    } catch (error: any) {
+      console.log(error);
+      setAlert({
+        open: true,
+        description: `Oops, something went wrong : ${error.message}`,
+        severity: 'error',
+      });
+    }
+  };
+
   //Other
   const getDOAImpact = async () => {
     try {
       //smart contract = one function that gives back all the info
       if (!!contractInstance) {
         const tokenAddr = await contractInstance.token();
-        const balance = 0; //Deal with IERC20 address to check that ?
-        const members = await contractInstance.DAOMembers().length;
-        const projectsContributed = await contractInstance.totalPaidProjects();
-        const donators = await contractInstance.anonymousDonations();
-        const alreadySent = (await contractInstance.totalCollected()) - balance;
-        setOurImpact({ balance, members, projectsContributed, donators, alreadySent });
+        const balance = BigNumber.from(0); //Deal with IERC20 address to check that ?
+        // const members = await contractInstance.DAOMembers();
+        const projectsContributed = BNtoNumber(
+          await contractInstance.totalPaidProjects()
+        );
+        const donators = BNtoNumber(await contractInstance.anonymousDonations());
+        const alreadySent = BigNumber.from(await contractInstance.totalCollected()).sub(
+          balance
+        );
+        setOurImpact({
+          balance: BNtoNumber(balance),
+          members: 0,
+          projectsContributed,
+          donators,
+          alreadySent: BNtoNumber(alreadySent),
+        });
       }
-      console.log('getDAOImpact');
-      setOurImpact({
-        balance: 10,
-        members: 20,
-        projectsContributed: 30,
-        donators: 100,
-        alreadySent: 50,
-      });
+      // else {
+      //   setOurImpact({
+      //     balance: 10,
+      //     members: 20,
+      //     projectsContributed: 30,
+      //     donators: 100,
+      //     alreadySent: 50,
+      //   });
+      // }
     } catch (error: any) {
       console.log(error);
       setAlert({
@@ -430,45 +465,44 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
   //USE EFFECTS
 
-  //Contract
-  useEffect(() => {
-    connectToContract();
-  }, []);
-
   //User
   useEffect(() => {
     connectWallet();
   }, [ethereum]);
 
+  //Contract
+  useEffect(() => {
+    connectToContract();
+  }, [signer]);
+
   //Round
   useEffect(() => {
     getRoundStatus();
-  }, []);
+  }, [contractInstance]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setTimeVal(getPeriodRemainingTime());
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [contractStartTime]);
 
   //Projects
   useEffect(() => {
     getHighlightedProjects();
     getCurrentProjects();
-  }, [roundStatus]);
+  }, [roundStatus, contractInstance]);
 
   //Other
   useEffect(() => {
     getDOAImpact();
-  }, []);
+  }, [contractInstance]);
 
   useEffect(() => {
     const createIPFSClient = async () => {
       try {
         const client = await create({ url: 'https://ipfs.infura.io:5001/api/v0' });
         setIPFSClient(client);
-        console.log('client', client);
       } catch (error: any) {
         console.log(error);
       }
@@ -485,6 +519,8 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         member,
         connectWallet,
         voteForProject,
+        //Donations
+        setOpenDonationForm,
         //Projects
         uploadImageToIPFS,
         highlightedProjects,
@@ -499,6 +535,11 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       }}
     >
       {children}
+      <DonateForm
+        open={openDonationForm}
+        onClose={() => setOpenDonationForm(false)}
+        onSubmit={sendDonation}
+      />
       <Snackbar
         open={alert.open}
         autoHideDuration={6000}

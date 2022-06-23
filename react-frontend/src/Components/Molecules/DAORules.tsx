@@ -5,8 +5,13 @@ import Button from '../Atoms/Button';
 import './DAORules.scss';
 import { GlobalContext } from '../../utils/GlobalContext';
 
-const DAORules = () => {
-  const { roundStatus } = useContext(GlobalContext);
+const DAORules = ({
+  setOpenProjectForm,
+}: {
+  setOpenProjectForm: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const { roundStatus, setOpenDonationForm, isMember, setAlert } =
+    useContext(GlobalContext);
   return (
     <div className='dao-rules'>
       <p>
@@ -62,7 +67,7 @@ const DAORules = () => {
               of the last.
             </li>
           </ul>
-          <Button onClick={() => console.log('Donate!')}>Donate USDC</Button>
+          <Button onClick={() => setOpenDonationForm(true)}>Donate USDC</Button>
         </AccordionDetails>
       </Accordion>
       <Accordion>
@@ -99,7 +104,18 @@ const DAORules = () => {
             </li>
           </ul>
           {roundStatus === 'propose' ? (
-            <Button onClick={() => console.log('Join!')}>Add a Project</Button>
+            <Button
+              onClick={() =>
+                !isMember
+                  ? setAlert({
+                      open: true,
+                      description: 'You need to be a member to propose a project',
+                    })
+                  : setOpenProjectForm(true)
+              }
+            >
+              Add a Project
+            </Button>
           ) : (
             <div>
               Projects can not be added while voting is live. Come back to add your

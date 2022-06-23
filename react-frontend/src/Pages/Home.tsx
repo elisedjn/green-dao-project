@@ -10,7 +10,8 @@ import { GlobalContext } from '../utils/GlobalContext';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
-  const { highlightedProjects, ourImpact } = useContext(GlobalContext);
+  const { highlightedProjects, ourImpact, setOpenDonationForm } =
+    useContext(GlobalContext);
   return (
     <div className='home-page'>
       <Navbar />
@@ -47,7 +48,7 @@ const Home = () => {
               can be contributed to our funding pool with your credit card, or you can use
               your web3 browser wallet to get involved and help guide our mission!
             </p>
-            <Button onClick={() => console.log('Donate!')}>Donate Now</Button>
+            <Button onClick={() => setOpenDonationForm(true)}>Donate Now</Button>
           </div>
 
           <div className='one-text'>
@@ -60,7 +61,11 @@ const Home = () => {
               interested learning about in ReFi (regenerative finance) initiatives and
               contributing to positive environmental impact.
             </p>
-            <Button onClick={() => console.log('Join!')}>Community Page</Button>
+            <Button onClick={() => {}}>
+              <Link className='no-decoration' to='/member'>
+                Community Page
+              </Link>
+            </Button>
           </div>
         </div>
         {!!ourImpact && (

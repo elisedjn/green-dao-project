@@ -10,7 +10,7 @@ type NavbarProps = {
 };
 
 const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
-  const { isConnected, connectWallet } = useContext(GlobalContext);
+  const { isConnected, connectWallet, setOpenDonationForm } = useContext(GlobalContext);
 
   return (
     <div className='navbar'>
@@ -26,7 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
       <div className='nav-links'>
         <Button
           className='navbar-btn'
-          onClick={() => console.log('contributing')}
+          onClick={() => setOpenDonationForm(true)}
           color='primary'
         >
           Contribute

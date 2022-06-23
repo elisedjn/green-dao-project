@@ -1,0 +1,31 @@
+.donate-dialog {
+  .MuiDialog-paper {
+    border-radius: 25px !important;
+    padding: 20px !important;
+    * {
+      font-family: 'Open Sans',system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,  'Helvetica Neue', sans-serif !important;
+    }
+  }
+
+  .form-title{
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+  }
+
+  .light-text{
+    font-weight: lighter;
+    font-size: 22px;
+    
+  }
+
+  .info-list{
+    font-weight: 300;
+    .bold{
+      font-weight: bold;
+    }
+  }
+
+  .action-btn{
+    justify-content: center;
+  }
+}

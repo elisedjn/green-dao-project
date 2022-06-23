@@ -31,7 +31,7 @@ const CircularProgressWithLabel = (
       />
       <div className='progress-label'>
         {progress}
-        {props.withETH && <span>ETH</span>}
+        {props.withETH && <span>USDC</span>}
       </div>
     </div>
   );

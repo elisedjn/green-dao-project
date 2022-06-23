@@ -29,7 +29,7 @@ const MemberPage = () => {
       <RemainingTime time={timeVal} isVote={roundStatus === 'vote'} />
       <div className='inner-page'>
         <Subtitle>Join the D2R Community</Subtitle>
-        <DAORules />
+        <DAORules setOpenProjectForm={setOpenProjectForm} />
         <div className='highlighted-projects'>
           <div className='subtitle'>
             <Subtitle>Explore the projects for this round of funding!</Subtitle>
@@ -60,6 +60,12 @@ const MemberPage = () => {
                 </Button>
               )}
             </>
+          )}
+          {!currentProjects.length && (
+            <div className='no-project'>
+              There is no project proposed yet for this round. If you're a member, feel
+              free to add one!
+            </div>
           )}
           {roundStatus === 'propose' && (
             <Button
