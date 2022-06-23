@@ -16,6 +16,8 @@ const RoundStatus = {
   Vote: 1,
 };
 
+const totalCollected = 0;
+
 describe('Funds Tests', function () {
   let contract;
   let tokenAddress;
@@ -100,11 +102,13 @@ describe('Funds Tests', function () {
       const projectAddress2 = await project2.getAddress();
       const projectAddress3 = await project3.getAddress();
       const projectAddress4 = await project4.getAddress();
+      const projectAddress5 = await project5.getAddress();
 
       await contract.connect(member2).addProject('new project', projectAddress1);
       await contract.connect(member2).addProject('new project', projectAddress2);
       await contract.connect(member3).addProject('new project', projectAddress3);
       await contract.connect(member1).addProject('new project', projectAddress4);
+      await contract.connect(member3).addProject('new project', projectAddress5);
 
       // Going to vote phase
       evm_increaseTime(oneWeekInSec * 3);
@@ -134,7 +138,27 @@ describe('Funds Tests', function () {
         expect(winAddr[2]).to.equal(projectAddress4);
       });
 
-      it('Should deal with tie', async function () {
+      it('Should find when there only 2 winners', async function () {
+        const projectAddress2 = await project2.getAddress();
+        const projectAddress3 = await project3.getAddress();
+        // Voting for projects
+
+        await contract.connect(member2).voteForProject(projectAddress2, 3);
+        await contract.connect(member3).voteForProject(projectAddress3, 3);
+        await contract.connect(member3).voteForProject(projectAddress3, 3);
+
+        //Going to next round
+        await network.provider.send('evm_increaseTime', [oneWeekInSec * 2]);
+        await network.provider.send('evm_mine');
+
+        await contract.distribute2Projects();
+        const [winAddr, winInfo] = await contract.getLastWinners();
+        expect(winAddr.length).to.equal(2);
+        expect(winAddr[0]).to.equal(projectAddress3);
+        expect(winAddr[1]).to.equal(projectAddress2);
+      });
+
+      it('Should deal with a tie for first', async function () {
         const projectAddress1 = await project1.getAddress();
         const projectAddress2 = await project2.getAddress();
         const projectAddress3 = await project3.getAddress();
@@ -156,11 +180,123 @@ describe('Funds Tests', function () {
         expect(winAddr[2]).to.equal(projectAddress4);
         expect(winAddr[3]).to.equal(projectAddress1);
       });
+
+      it('Should deal with tie for second', async function () {
+        const projectAddress1 = await project1.getAddress();
+        const projectAddress2 = await project2.getAddress();
+        const projectAddress3 = await project3.getAddress();
+        const projectAddress4 = await project4.getAddress();
+        // Voting for projects
+        await contract.connect(member1).voteForProject(projectAddress4, 2);
+        await contract.connect(member2).voteForProject(projectAddress1, 1);
+        await contract.connect(member2).voteForProject(projectAddress2, 2);
+        await contract.connect(member3).voteForProject(projectAddress3, 3);
+
+        //Going to next round
+        await network.provider.send('evm_increaseTime', [oneWeekInSec * 2]);
+        await network.provider.send('evm_mine');
+
+        await contract.distribute2Projects();
+        const [winAddr, winInfo] = await contract.getLastWinners();
+        expect([projectAddress4, projectAddress2].includes(winAddr[1]));
+        expect([projectAddress4, projectAddress2].includes(winAddr[2]));
+        expect(winAddr[0]).to.equal(projectAddress3);
+        expect(winAddr[3]).to.equal(projectAddress1);
+      });
+
+      it('Should revert when the first round has not finished', async function () {
+        await expect(
+          contract.getLastWinners()
+        ).to.be.revertedWith('The first round has not ended');
+      });
     });
 
+
     // distribute to projects
-    it('Should distribute funds to the winners of the corresponding round', async function () {
-      //number and addresses of winnning projects == number/addresses of projects that recieve funds
+    describe('distribute the funds properly', () => {
+
+      it('Should distribute funds to the winners of the corresponding round', async function () {
+        //number and addresses of winnning projects == number/addresses of projects that recieve funds
+        const projectAddress1 = await project1.getAddress();
+        const projectAddress2 = await project2.getAddress();
+        const projectAddress3 = await project3.getAddress();
+        const projectAddress4 = await project4.getAddress();
+        // Voting for projects
+        await contract.connect(member1).voteForProject(projectAddress4, 2);
+        await contract.connect(member2).voteForProject(projectAddress1, 1);
+        await contract.connect(member2).voteForProject(projectAddress2, 3);
+        await contract.connect(member3).voteForProject(projectAddress3, 3);
+        await contract.connect(member3).voteForProject(projectAddress3, 3);
+
+        //Going to next round
+        await network.provider.send('evm_increaseTime', [oneWeekInSec * 2]);
+        await network.provider.send('evm_mine');
+
+        await contract.distribute2Projects();
+        const [winAddr, winInfo] = await contract.getLastWinners();
+        expect([winAddr].includes([projectAddress2, projectAddress3, projectAddress4]));
+        // console.log("winning addr", winAddr, "proj info", winInfo);
+        // console.log("maybe shows total", totalCollected);
+      });
+
+      it('Should distribute funds to 5 projects if there is a tie', async function () {
+        //number and addresses of winnning projects == number/addresses of projects that recieve funds
+        const projectAddress1 = await project1.getAddress();
+        const projectAddress2 = await project2.getAddress();
+        const projectAddress3 = await project3.getAddress();
+        const projectAddress4 = await project4.getAddress();
+        const projectAddress5 = await project5.getAddress();
+
+        // Voting for projects
+        await contract.connect(member1).voteForProject(projectAddress4, 1);
+        await contract.connect(member2).voteForProject(projectAddress1, 1);
+        await contract.connect(member2).voteForProject(projectAddress2, 1);
+        await contract.connect(member3).voteForProject(projectAddress5, 1);
+        await contract.connect(member3).voteForProject(projectAddress3, 1);
+
+        // Going to next round
+        await network.provider.send('evm_increaseTime', [oneWeekInSec * 2]);
+        await network.provider.send('evm_mine');
+
+        await contract.distribute2Projects();
+        const [winAddr, winInfo] = await contract.getLastWinners();
+        expect(winAddr.length).to.equal(5);
+      });
+
+      it('Should revert if funds were already distributed for the round', async function () {
+        //number and addresses of winnning projects == number/addresses of projects that recieve funds
+        const projectAddress1 = await project1.getAddress();
+        const projectAddress2 = await project2.getAddress();
+
+        // Voting for projects
+        await contract.connect(member2).voteForProject(projectAddress1, 1);
+        await contract.connect(member2).voteForProject(projectAddress2, 1);
+
+        // Going to next round
+        await network.provider.send('evm_increaseTime', [oneWeekInSec * 2]);
+        await network.provider.send('evm_mine');
+        await contract.distribute2Projects();
+
+        await expect(
+          contract.distribute2Projects()
+        ).to.be.revertedWith('Donations for this round have already been sent');
+      });
+
+      it('Should revert when the round is not over', async function () {
+        await expect(
+          contract.distribute2Projects()
+        ).to.be.revertedWith('This round is not finished yet');
+      });
+
     });
+
+  });
+
+  it('Should revert if no projects were proposed', async function () {
+    await network.provider.send('evm_increaseTime', [oneWeekInSec * 5]);
+    await network.provider.send('evm_mine');
+    await expect(
+      contract.distribute2Projects()
+    ).to.be.revertedWith('There are no projects to distribute this round');
   });
 });

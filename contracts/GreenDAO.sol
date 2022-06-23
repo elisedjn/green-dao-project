@@ -153,6 +153,17 @@ contract GreenDAO is KeeperCompatibleInterface {
     }
 
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
+        // Check that member still has enough votes to use
+        require(
+          members[msg.sender].votes != 0,
+          "You are out of votes for this round"
+        );
+
+        require(
+          members[msg.sender].votes >= nbOfVote,
+          "You do not have enough votes, try voting with less"
+        );
+
         require(
             getCurrentRoundStatus() == RoundStatus.Vote,
             "Voting phase is not yet started"
@@ -181,7 +192,15 @@ contract GreenDAO is KeeperCompatibleInterface {
             !rounds[roundId].hasBeenPaid,
             "Donations for this round have already been sent"
         );
-        require(roundId != getCurrentRound(), "This round is not finished yet");
+        require(
+          roundId != getCurrentRound() && roundId != 0,
+           "This round is not finished yet"
+        );
+        require(
+          projectsPerRound[roundId].length != 0,
+          "There are no projects to distribute this round"
+        );
+
         rounds[roundId].hasBeenPaid = true;
         address[] memory winners = findWinners(roundId);
         totalPaidProjects += winners.length;
@@ -272,6 +291,9 @@ contract GreenDAO is KeeperCompatibleInterface {
         for (uint256 i = 0; i < projectsPerRound[roundId].length; i++) {
             address projectAddr = projectsPerRound[roundId][i];
             uint256 votes = projects[roundId][projectAddr].votes;
+            if (votes == 0) {
+              break;
+            }
             if (votes == thirdVotes) {
                 thirdOnes[i] = projectAddr;
             }
@@ -315,6 +337,7 @@ contract GreenDAO is KeeperCompatibleInterface {
         view
         returns (address[] memory, Project[] memory)
     {
+        require(getCurrentRound() > 1, "The first round has not ended");
         uint256 prevRoundId = (getCurrentRound() - 1);
         address[] memory winners = rounds[prevRoundId].winningProjects;
         Project[] memory previousWinners = new Project[](winners.length);
