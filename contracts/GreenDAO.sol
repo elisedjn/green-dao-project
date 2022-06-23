@@ -5,7 +5,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@chainlink/contracts/src/v0.7/KeeperCompatible.sol";
+import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 contract GreenDAO is KeeperCompatibleInterface {
     using SafeERC20 for IERC20;
@@ -76,28 +76,20 @@ contract GreenDAO is KeeperCompatibleInterface {
     }
 
     // For ChainlinkKeeper
-    function checkUpkeep()
+    function checkUpkeep(bytes calldata checkData)
         external
         override
-        returns (
-            /*bytes calldata  checkData */
-            bool upkeepNeeded /*bytes memory  performData */
-        )
+        returns (bool upkeepNeeded, bytes memory performData)
     {
         uint256 previousRound = getCurrentRound() - 1;
         upkeepNeeded = !rounds[previousRound].hasBeenPaid;
-        // upkeepNeeded = (block.timestamp - lastTimeStamp) > interval;
-        // We don't use the checkData in this example. The checkData is defined when the Upkeep was registered.
     }
 
-    // this is the example code
-    function performUpkeep(
-        bytes calldata /* performData */
-    ) external override {
+    function performUpkeep(bytes calldata performData) external override {
         //We highly recommend revalidating the upkeep in the performUpkeep function
         uint256 previousRound = getCurrentRound() - 1;
         if (!rounds[previousRound].hasBeenPaid) {
-            distributeToProjects();
+            this.distribute2Projects();
         }
     }
 
@@ -155,13 +147,13 @@ contract GreenDAO is KeeperCompatibleInterface {
     function voteForProject(address projectAddress, uint256 nbOfVote) external {
         // Check that member still has enough votes to use
         require(
-          members[msg.sender].votes != 0,
-          "You are out of votes for this round"
+            members[msg.sender].votes != 0,
+            "You are out of votes for this round"
         );
 
         require(
-          members[msg.sender].votes >= nbOfVote,
-          "You do not have enough votes, try voting with less"
+            members[msg.sender].votes >= nbOfVote,
+            "You do not have enough votes, try voting with less"
         );
 
         require(
@@ -193,12 +185,12 @@ contract GreenDAO is KeeperCompatibleInterface {
             "Donations for this round have already been sent"
         );
         require(
-          roundId != getCurrentRound() && roundId != 0,
-           "This round is not finished yet"
+            roundId != getCurrentRound() && roundId != 0,
+            "This round is not finished yet"
         );
         require(
-          projectsPerRound[roundId].length != 0,
-          "There are no projects to distribute this round"
+            projectsPerRound[roundId].length != 0,
+            "There are no projects to distribute this round"
         );
 
         rounds[roundId].hasBeenPaid = true;
@@ -292,7 +284,7 @@ contract GreenDAO is KeeperCompatibleInterface {
             address projectAddr = projectsPerRound[roundId][i];
             uint256 votes = projects[roundId][projectAddr].votes;
             if (votes == 0) {
-              break;
+                break;
             }
             if (votes == thirdVotes) {
                 thirdOnes[i] = projectAddr;
@@ -359,5 +351,15 @@ contract GreenDAO is KeeperCompatibleInterface {
             currentProjects[i] = (projects[roundId][list[i]]);
         }
         return (list, currentProjects);
+    }
+
+    function pullTokens(address _tokenAddress) external {
+        require(
+            msg.sender == owner,
+            "You are not authorized to call this function"
+        );
+        require(_tokenAddress != token, "You can not pull that token");
+        uint256 balanceToken = IERC20(_tokenAddress).balanceOf(address(this));
+        SafeERC20.safeTransfer(IERC20(_tokenAddress), owner, balanceToken);
     }
 }

@@ -11,7 +11,7 @@ const { expect } = chai;
 const pricePerVote = BigNumber.from(10).pow(18).mul(40);
 const oneWeekInSec = 7 * 24 * 3600;
 
-describe('GreenDAO', function () {
+describe('Voting Tests', function () {
   let contract;
   let tokenAddress;
   let token;
@@ -68,8 +68,6 @@ describe('GreenDAO', function () {
   });
 
   describe('apply voting credits', () => {
-
-
     beforeEach(async () => {
       // First member 2 donates to become a member and be able to add a project;
       const donation = BigNumber.from(10).pow(18).mul(160);
@@ -114,7 +112,7 @@ describe('GreenDAO', function () {
       const projectAddress1 = await project1.getAddress();
       const projectAddress2 = await project2.getAddress();
 
-      await expect (
+      await expect(
         contract.connect(member2).voteForProject(projectAddress1, 2)
       ).to.be.revertedWith('You do not have enough votes, try voting with less');
 
@@ -122,7 +120,7 @@ describe('GreenDAO', function () {
       await expect(
         contract.connect(await member2).voteForProject(projectAddress1, 1)
       ).to.be.revertedWith('You are out of votes for this round');
-    })
+    });
 
     it('Should provide an array of projects the member voted for', async function () {
       expect(
