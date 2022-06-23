@@ -20,7 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
         </div>
         <div className='D2R-name'>
           <h3>D2R</h3>
-          <span>Donate to Regenerate</span>
+          <span>DonateToRegenerate</span>
         </div>
       </Link>
       <div className='nav-links'>

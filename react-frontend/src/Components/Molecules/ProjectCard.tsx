@@ -25,8 +25,14 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
           <div
             className='votes-per-project'
             onClick={() =>
-              !isMember || roundStatus !== 'vote'
+              roundStatus !== 'vote'
                 ? () => {}
+                : !isMember
+                ? setAlert({
+                    open: true,
+                    severity: 'info',
+                    description: 'You need to be a member to vote',
+                  })
                 : !member?.votesRemaining
                 ? setAlert({
                     open: true,
@@ -50,11 +56,17 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
         <CardActions className='project-bottom'>
           <div className='fade' />
 
-          {inMemberPage && isMember && roundStatus === 'vote' ? (
+          {inMemberPage && roundStatus === 'vote' ? (
             <>
               <Button
                 onClick={() =>
-                  !member?.votesRemaining
+                  !isMember
+                    ? setAlert({
+                        open: true,
+                        severity: 'info',
+                        description: 'You need to be a member to vote',
+                      })
+                    : !member?.votesRemaining
                     ? setAlert({
                         open: true,
                         severity: 'info',
@@ -69,7 +81,9 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
                 Vote for this project
               </Button>
               {member?.lastVotes.includes(project.address) && (
-                <span>You have already voted for this project</span>
+                <span className='light-text'>
+                  You have already voted for this project
+                </span>
               )}
             </>
           ) : (

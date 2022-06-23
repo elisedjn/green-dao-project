@@ -1,0 +1,20 @@
+.dao-rules {
+  font-size: 24px;
+  font-weight: lighter;
+  .details {
+    ul {
+    text-align: left;
+    font-weight: normal;
+    font-size: 20px;
+    li{
+      padding-bottom: 12px;
+    }
+    .bold {
+      font-weight: bold;
+    }
+    }
+  }
+  h5 {
+    margin: 5px;
+  }
+}

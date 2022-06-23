@@ -252,7 +252,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         setMember({
           address: userAddress ?? '',
           lastVotes: ['0x01', '0x06'],
-          votesRemaining: 3,
+          votesRemaining: 5,
         });
       }
     } catch (error: any) {

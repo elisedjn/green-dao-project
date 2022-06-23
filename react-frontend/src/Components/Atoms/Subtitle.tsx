@@ -2,7 +2,7 @@ import React from 'react';
 import './Subtitle.scss';
 
 type SubtitleProps = {
-  children: string;
+  children: React.ReactNode;
 };
 
 const Subtitle: React.FC<SubtitleProps> = ({ children }) => {

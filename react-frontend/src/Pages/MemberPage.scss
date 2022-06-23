@@ -1,26 +1,40 @@
 .member-page{
   .inner-page {
     padding: 24px;
-    padding-top: 50px;
+    padding-top: 0px;
     max-width: 1200px;
     margin: auto;
     text-align: center;
 
-    .dao-rules {
-      max-height: 300px;
-      overflow-y: scroll;
-      font-size: 24px;
-      font-weight: lighter;
-    }
-
     .highlighted-projects {
       margin-bottom: 48px;
+      .subtitle{
+        h3{
+          margin-top: 100px;
+          margin-bottom: 0px;
+        }
+      }
+      .get-more-votes{
+        display: block;
+        cursor: pointer;
+        font-weight: 500;
+        // color: #31572C;
+        margin: auto;
+      }
+      .light-text{
+        font-size: 24px;
+        font-weight: lighter;
+        .bold{
+          font-weight: normal;
+        }
+      }
       .projects-list {
         display: flex;
         align-items: stretch;
         justify-content: space-between;
         gap: 12px;
         margin-bottom: 30px;
+        margin-top: 30px;
         flex-wrap: wrap;
       }
     }

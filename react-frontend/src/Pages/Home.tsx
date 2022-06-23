@@ -7,6 +7,7 @@ import Navbar from '../Components/Molecules/Navbar';
 import Footer from '../Components/Molecules/Footer';
 import './Home.scss';
 import { GlobalContext } from '../utils/GlobalContext';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const { highlightedProjects, ourImpact } = useContext(GlobalContext);
@@ -20,13 +21,20 @@ const Home = () => {
           projects we support, and how you can get involved.
         </div>
         <div className='highlighted-projects'>
-          <Subtitle>The DonateToRegenerate Community has contibuted funding to these initiatives</Subtitle>
+          <Subtitle>
+            The DonateToRegenerate Community has contibuted funding to these initiatives
+          </Subtitle>
           <div className='projects-list'>
             {highlightedProjects.map((project, index) => (
               <ProjectCard project={project} key={index} /> //key is mandatory when rendering a component inside a map
             ))}
           </div>
-          <Subtitle>check out our community page to see the projects being considered for our next round of funding</Subtitle>
+          <div className='green-banner'>
+            <p>
+              Check out our <Link to='/member'>Community Page</Link> to see the projects
+              being considered for our next round of funding
+            </p>
+          </div>
         </div>
         <div className='dao-description'>
           <div className='one-text'>

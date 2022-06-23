@@ -59,6 +59,26 @@
       }
     }
 
+    .green-banner{
+      background-color: #31572C;
+      color: white;
+      font-size: 32px;
+      position: relative;
+      right: calc((100vw - 1200px) / 2);
+      width: 100vw;
+      font-weight: 200;
+      p{
+        padding: 30px 0px;
+        max-width: 1200px;
+        margin: auto;
+        a{
+          color: white;
+          font-weight: 400;
+          text-decoration: none;
+        }
+      }
+    }
+
     .dao-impact{
       max-width: 1200px;
       margin: auto;
