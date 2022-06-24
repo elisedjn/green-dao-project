@@ -209,7 +209,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       const added = await IPFSClient?.add(file);
       return `https://ipfs.infura.io/ipfs/${added?.path}`;
     } catch (error: any) {
-      console.log(error);
+      console.log('UploadImageToIPFS', error);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -232,7 +232,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       }
       return JSON.parse(data) as Project;
     } catch (error: any) {
-      console.log(error.message);
+      console.log('getProjectDataFromIPFS', error);
     }
   };
 
@@ -270,7 +270,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       if (!!contractInstance) {
         const answer = await contractInstance.isMember(userAddress);
         setIsMember(answer);
-        console.log('is member', answer);
         if (answer) {
           const infos = await contractInstance.members(userAddress);
           const lastVotes = await contractInstance.getProjectsMemberVotedFor(userAddress);
@@ -282,6 +281,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         }
       }
     } catch (error: any) {
+      console.log('checkIfMember', error);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -306,6 +306,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         });
       }
     } catch (error: any) {
+      console.log('voteForProject', error);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -323,10 +324,10 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
           const [, projects] = await contractInstance.getLastWinners();
           let fullProjects: Project[] = [];
           for (let i = 0; i < projects?.length ?? 0; i++) {
-            const [data, votes] = projects[i];
-            const fullData = await getProjectDataFromIPFS(data);
+            const infos = projects[i];
+            const fullData = await getProjectDataFromIPFS(infos.data);
             if (fullData) {
-              fullProjects.push({ ...fullData, votes: BNtoNumber(votes) });
+              fullProjects.push({ ...fullData, votes: BNtoNumber(infos.votes) });
             }
           }
           setHighlightedProjects(fullProjects);
@@ -338,6 +339,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         setHighlightedProjects(highlightedProjectsSample);
       }
     } catch (error: any) {
+      console.log('getHighlightedProjects', error);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -352,15 +354,20 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         const [, projects] = await contractInstance.getCurrentProjects();
         let fullProjects: Project[] = [];
         for (let i = 0; i < projects?.length ?? 0; i++) {
-          const [data, votes, proposedBy] = projects[i];
-          const fullData = await getProjectDataFromIPFS(data);
+          const infos = projects[i];
+          const fullData = await getProjectDataFromIPFS(infos.data);
           if (fullData) {
-            fullProjects.push({ ...fullData, proposedBy, votes: BNtoNumber(votes) });
+            fullProjects.push({
+              ...fullData,
+              proposedBy: infos.proposedBy,
+              votes: BNtoNumber(infos.votes),
+            });
           }
         }
         setCurrentProjects(fullProjects);
       }
     } catch (error: any) {
+      console.log('getCurrentProjects', error);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -381,7 +388,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
       await getCurrentProjects();
     } catch (error: any) {
-      console.log(error);
+      console.log('Submit new project', error);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -400,7 +407,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         setContractStartTime(BNtoNumber(start));
       }
     } catch (error: any) {
-      console.log(error);
+      console.log('getRoundStatus', error);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -463,9 +470,10 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         await checkIfMember();
         setTxHash(donationTx.hash);
         setDonationLoading(false);
+        await getDOAImpact();
       }
     } catch (error: any) {
-      console.log(error);
+      console.log('sendDonation', error);
       setApprovalLoading(false);
       setDonationLoading(false);
       setAlert({
@@ -480,7 +488,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const getContractBalance = async () => {
     try {
       const tokenAddr = (await contractInstance?.token()) ?? '';
-      console.log('tokenAddr', tokenAddr);
       const signerOrProvider =
         signer ??
         new ethers.providers.AlchemyProvider(
@@ -491,7 +498,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       const USDCBalance = await USDC.balanceOf(contractAddress);
       return BigNumber.from(USDCBalance);
     } catch (error: any) {
-      console.log(error);
+      console.log('getContractBalance', error);
       return BigNumber.from(0);
     }
   };
@@ -500,11 +507,6 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     try {
       if (!!contractInstance) {
         const balance = await getContractBalance();
-
-        const members = await contractInstance.members(userAddress);
-        console.log('members', members);
-        const currentRound = await contractInstance.getCurrentRound();
-        console.log('round', currentRound);
 
         const projectsContributed = await contractInstance.totalPaidProjects();
         const donators = await contractInstance.anonymousDonations();
@@ -519,7 +521,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         });
       }
     } catch (error: any) {
-      console.log(error);
+      console.log('getDAOImpact', error);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -569,7 +571,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         const client = await create({ url: 'https://ipfs.infura.io:5001/api/v0' });
         setIPFSClient(client);
       } catch (error: any) {
-        console.log(error);
+        console.log('Create IPFSClient', error);
       }
     };
     createIPFSClient();
@@ -602,7 +604,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       {children}
       <DonateForm
         open={openDonationForm}
-        onClose={() => setOpenDonationForm(false)}
+        onClose={() =>
+          donationLoading || approvalLoading ? {} : setOpenDonationForm(false)
+        }
         onSubmit={sendDonation}
         {...{ donationLoading, txHash, approvalLoading, isMember }}
       />
