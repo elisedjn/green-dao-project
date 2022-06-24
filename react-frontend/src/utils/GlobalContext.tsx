@@ -46,69 +46,8 @@ export const GlobalContext = createContext<GlobalContextType>({
   setOpenDonationForm: () => {},
 });
 
-const contractAddress = '0x7e56d931c474c2874D688226cc9eF7295A6a0cB7';
+const contractAddress = '0x0757167e430d8cC270aef51f7C698CcDe41f2F6e';
 const ROUND_STATUS: ('propose' | 'vote')[] = ['propose', 'vote'];
-
-const currentProjectsSample: Project[] = [
-  {
-    address: '0x01',
-    title: 'Proposal Project 1',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
-    image:
-      'https://images.theconversation.com/files/137600/original/image-20160913-4948-6fyxz.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=1200&h=900.0&fit=crop',
-    link: '',
-    votes: 3,
-  },
-  {
-    address: '0x02',
-    title: 'Proposal Project 2',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. ',
-    image: 'https://storage.googleapis.com/pod_public/1300/120225.jpg',
-    link: '',
-    votes: 2,
-  },
-  {
-    address: '0x03',
-    title: 'Proposal Project 3',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
-    image:
-      'https://thumbs.dreamstime.com/b/large-group-african-safari-animals-wildlife-conservation-concept-174172993.jpg',
-    link: '',
-    votes: 5,
-  },
-  {
-    address: '0x04',
-    title: 'Proposal Project 1',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
-    image:
-      'https://images.theconversation.com/files/137600/original/image-20160913-4948-6fyxz.jpg?ixlib=rb-1.1.0&q=45&auto=format&w=1200&h=900.0&fit=crop',
-    link: '',
-    votes: 7,
-  },
-  {
-    address: '0x05',
-    title: 'Proposal Project 2',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. ',
-    image: 'https://storage.googleapis.com/pod_public/1300/120225.jpg',
-    link: '',
-    votes: 10,
-  },
-  {
-    address: '0x06',
-    title: 'Proposal Project 3',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Feugiat nibh sed pulvinar proin gravida hendrerit lectus a. Velit sed ullamcorper morbi tincidunt ornare massa eget egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Consectetur adipiscing elit pellentesque habitant morbi tristique senectus et netus. Non enim praesent elementum facilisis leo vel fringilla. Netus et malesuada fames ac turpis egestas. Dignissim sodales ut eu sem integer vitae justo eget. Blandit cursus risus at ultrices mi tempus imperdiet nulla. Vel pretium lectus quam id. Ac tortor dignissim convallis aenean. Suscipit tellus mauris a diam maecenas sed enim. Dolor sed viverra ipsum nunc. Erat imperdiet sed euismod nisi porta lorem mollis. Pellentesque diam volutpat commodo sed egestas egestas fringilla phasellus faucibus.',
-    image:
-      'https://thumbs.dreamstime.com/b/large-group-african-safari-animals-wildlife-conservation-concept-174172993.jpg',
-    link: '',
-    votes: 1,
-  },
-];
 
 const highlightedProjectsSample: Project[] = [
   {
@@ -418,9 +357,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
   const getPeriodRemainingTime = () => {
     //returns a number in miliSeconds
-    const oneWeekInMiliSec = 7 * 24 * 3600 * 1000;
-    const roundDuration = 4 * oneWeekInMiliSec;
-    const proposalDuration = 3 * oneWeekInMiliSec;
+    const oneDayInMs = 24 * 3600 * 1000;
+    const roundDuration = 2 * oneDayInMs;
+    const proposalDuration = 1 * oneDayInMs;
     const duration = Date.now() - (contractStartTime ?? 0) * 1000; //contractStartTime is in seconds since unix epoch
     if (duration % roundDuration < proposalDuration) {
       //Proposal phase
@@ -507,14 +446,14 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     try {
       if (!!contractInstance) {
         const balance = await getContractBalance();
-
+        const members = await contractInstance.totalMembers();
         const projectsContributed = await contractInstance.totalPaidProjects();
         const donators = await contractInstance.anonymousDonations();
         const totalCollected = await contractInstance.totalCollected();
         const alreadySent = BigNumber.from(totalCollected).sub(balance);
         setOurImpact({
           balance: USDCToNumber(balance),
-          members: 1,
+          members: BNtoNumber(members),
           projectsContributed: BNtoNumber(projectsContributed),
           donators: BNtoNumber(donators),
           alreadySent: USDCToNumber(alreadySent),
@@ -604,8 +543,13 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       {children}
       <DonateForm
         open={openDonationForm}
-        onClose={() =>
-          donationLoading || approvalLoading ? {} : setOpenDonationForm(false)
+        onClose={
+          donationLoading || approvalLoading
+            ? () => {}
+            : () => {
+                setOpenDonationForm(false);
+                setTxHash('');
+              }
         }
         onSubmit={sendDonation}
         {...{ donationLoading, txHash, approvalLoading, isMember }}

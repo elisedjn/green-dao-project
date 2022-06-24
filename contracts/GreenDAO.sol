@@ -9,8 +9,8 @@ import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 contract GreenDAO is KeeperCompatibleInterface {
     using SafeERC20 for IERC20;
-    uint256 public constant ROUND_DURATION = 4 weeks;
-    uint256 public constant PROPOSAL_DURATION = 3 weeks;
+    uint256 public constant ROUND_DURATION = 2 days;
+    uint256 public constant PROPOSAL_DURATION = 1 days;
 
     address owner;
     uint256 public start;
@@ -49,7 +49,7 @@ contract GreenDAO is KeeperCompatibleInterface {
     uint256 public totalCollected;
     uint256 public totalPaidProjects;
     mapping(address => bool) public DAOMembers;
-    uint256 TotalMembers;
+    uint256 public totalMembers;
     uint256 public anonymousDonations;
 
     constructor(address _token, uint256 _pricePerVote) {
@@ -110,7 +110,7 @@ contract GreenDAO is KeeperCompatibleInterface {
         ) {
             if (!isMember(msg.sender)) {
                 if (!DAOMembers[msg.sender]) {
-                    TotalMembers++;
+                    totalMembers++;
                 }
                 DAOMembers[msg.sender] = true;
                 members[msg.sender].lastRoundPaid = currentRound;

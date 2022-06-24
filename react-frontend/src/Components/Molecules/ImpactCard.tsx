@@ -15,7 +15,7 @@ const ImpactCard: React.FC<DAOImpact> = ({
       <div className='first-line'>
         <div className='one-element'>
           <CircularProgressWithLabel maxValue={projectsContributed} />
-          <h5>projects contributions</h5>
+          <h5>projects contributed to</h5>
         </div>
         <div className='one-element'>
           <CircularProgressWithLabel maxValue={alreadySent} withETH />
