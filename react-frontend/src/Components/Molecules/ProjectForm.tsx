@@ -166,7 +166,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
             <TextField
               margin='dense'
               id='address'
-              label='Project Public Address (on Rinkeby)'
+              label='Project Public Address'
               type='string'
               fullWidth
               variant='standard'

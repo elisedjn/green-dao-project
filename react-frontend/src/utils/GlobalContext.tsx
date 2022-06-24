@@ -33,17 +33,17 @@ export const GlobalContext = createContext<GlobalContextType>({
   isConnected: false,
   isMember: false,
   member: null,
-  voteForProject: async () => { },
+  voteForProject: async () => {},
   highlightedProjects: [],
   currentProjects: [],
   roundStatus: 'propose',
   uploadImageToIPFS: async () => '',
-  submitNewProject: async () => { },
-  connectWallet: async () => { },
+  submitNewProject: async () => {},
+  connectWallet: async () => {},
   ourImpact: null,
-  setAlert: () => { },
+  setAlert: () => {},
   timeVal: 0,
-  setOpenDonationForm: () => { },
+  setOpenDonationForm: () => {},
 });
 
 const contractAddress = '0x7e56d931c474c2874D688226cc9eF7295A6a0cB7';
@@ -273,6 +273,8 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         console.log('is member', answer);
         if (answer) {
           const [lastRoundPaid, votes] = await contractInstance.members(userAddress);
+          const current = await contractInstance.getCurrentRound();
+          console.log('lastRoundPaid', BNtoNumber(lastRoundPaid), BNtoNumber(current));
           const lastVotes = await contractInstance.getProjectsMemberVotedFor(userAddress);
           console.log('last votes', lastVotes);
           setMember({
@@ -353,14 +355,13 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         console.log('PROJECTS', projects);
         let fullProjects: Project[] = [];
         for (let i = 0; i < projects?.length ?? 0; i++) {
-          const data = await getProjectDataFromIPFS(projects[i].data);
-          if (data) {
-            fullProjects.push({ ...data, votes: projects[i].votes });
+          const [data, votes, proposedBy] = projects[i];
+          const fullData = await getProjectDataFromIPFS(data);
+          if (fullData) {
+            fullProjects.push({ ...fullData, votes: BNtoNumber(votes) });
           }
         }
         setCurrentProjects(fullProjects);
-      } else {
-        setCurrentProjects(currentProjectsSample);
       }
     } catch (error: any) {
       setAlert({

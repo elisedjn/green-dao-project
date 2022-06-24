@@ -60,8 +60,7 @@ const DonateForm: React.FC<DonateFormProps> = ({
             <p className='check-tx'>
               You can check this transaction here :{' '}
               <a
-                href={`https://mumbai.polygonscan.com/tx/
-              ${txHash}`}
+                href={`https://mumbai.polygonscan.com/tx/${txHash}`}
                 target='_blank'
                 rel='noreferrer'
               >
