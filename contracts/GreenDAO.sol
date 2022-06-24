@@ -49,6 +49,7 @@ contract GreenDAO is KeeperCompatibleInterface {
     uint256 public totalCollected;
     uint256 public totalPaidProjects;
     mapping(address => bool) public DAOMembers;
+    uint256 TotalMembers;
     uint256 public anonymousDonations;
 
     constructor(address _token, uint256 _pricePerVote) {
@@ -108,6 +109,9 @@ contract GreenDAO is KeeperCompatibleInterface {
             amount >= pricePerVote
         ) {
             if (!isMember(msg.sender)) {
+                if (!DAOMembers[msg.sender]) {
+                    TotalMembers++;
+                }
                 DAOMembers[msg.sender] = true;
                 members[msg.sender].lastRoundPaid = currentRound;
                 members[msg.sender].votes = 0;
