@@ -7,6 +7,25 @@
     }
   }
 
+  .tx-success {
+    width:100%;
+    .check-tx{
+      margin: 12px 0px;
+      a{
+        color: #31572C;
+        display: block;
+        width:100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    p{
+      margin: 0px;
+      padding: 0px;
+    }
+  }
+
   .form-title{
     font-family: 'Montserrat', sans-serif;
     text-transform: uppercase;
