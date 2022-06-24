@@ -21,7 +21,7 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
   return (
     <>
       <Card className='project-card'>
-        {inMemberPage && (
+        {inMemberPage && roundStatus === 'vote' && (
           <div
             className='votes-per-project'
             onClick={() =>
@@ -51,10 +51,36 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
           className={inMemberPage ? 'project-content big-card' : 'project-content'}
         >
           <h3>{title}</h3>
-          <p>{description}</p>
+          <div className='description'>
+            <p>{description}</p>
+            {inMemberPage && (
+              <>
+                <p>
+                  Project address :{' '}
+                  <a
+                    href={`https://mumbai.polygonscan.com/address/${project.address}`}
+                    target='_blank'
+                    rel='noreferrer'
+                  >
+                    {project.address}
+                  </a>
+                </p>
+                <p>
+                  Proposed by :{' '}
+                  <a
+                    href={`https://mumbai.polygonscan.com/address/${project.proposedBy}`}
+                    target='_blank'
+                    rel='noreferrer'
+                  >
+                    {project.proposedBy}
+                  </a>
+                </p>
+              </>
+            )}
+          </div>
         </CardContent>
         <CardActions className='project-bottom'>
-          <div className='fade' />
+          {/* <div className='fade' /> */}
 
           {inMemberPage && roundStatus === 'vote' ? (
             <>

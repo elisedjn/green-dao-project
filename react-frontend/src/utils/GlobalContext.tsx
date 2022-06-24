@@ -323,12 +323,13 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       if (!!contractInstance) {
         const currentRound = await contractInstance.getCurrentRound();
         if (BNtoNumber(currentRound) > 1) {
-          const [projectsAddr, projects] = await contractInstance.getLastWinners();
+          const [, projects] = await contractInstance.getLastWinners();
           let fullProjects: Project[] = [];
           for (let i = 0; i < projects?.length ?? 0; i++) {
-            const data = await getProjectDataFromIPFS(projects[i].data);
-            if (data) {
-              fullProjects.push({ ...data, votes: projects[i].votes });
+            const [data, votes] = projects[i];
+            const fullData = await getProjectDataFromIPFS(data);
+            if (fullData) {
+              fullProjects.push({ ...fullData, votes: BNtoNumber(votes) });
             }
           }
           setHighlightedProjects(fullProjects);
@@ -351,14 +352,13 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const getCurrentProjects = async () => {
     try {
       if (!!contractInstance) {
-        const [projectsAddr, projects] = await contractInstance.getCurrentProjects();
-        console.log('PROJECTS', projects);
+        const [, projects] = await contractInstance.getCurrentProjects();
         let fullProjects: Project[] = [];
         for (let i = 0; i < projects?.length ?? 0; i++) {
           const [data, votes, proposedBy] = projects[i];
           const fullData = await getProjectDataFromIPFS(data);
           if (fullData) {
-            fullProjects.push({ ...fullData, votes: BNtoNumber(votes) });
+            fullProjects.push({ ...fullData, proposedBy, votes: BNtoNumber(votes) });
           }
         }
         setCurrentProjects(fullProjects);
@@ -378,7 +378,8 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       const data = `https://ipfs.infura.io/ipfs/${added?.path}`;
 
       if (!!contractInstance) {
-        await contractInstance.addProject(data, project.address);
+        const proposeTx = await contractInstance.addProject(data, project.address);
+        await proposeTx.wait();
       }
 
       await getCurrentProjects();

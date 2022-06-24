@@ -76,8 +76,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
       onSubmit(project);
       handleClose();
       setAlert({
-        description: 'Your project has been accepted, thank you!',
-        severity: 'info',
+        description:
+          'Your project has been accepted, thank you! It will shortly be shown on the list.',
+        severity: 'success',
         open: true,
       });
     } catch (error: any) {
