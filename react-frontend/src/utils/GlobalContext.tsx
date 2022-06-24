@@ -4,7 +4,8 @@ import { AlertInfo, DAOImpact, Member, Project } from './types';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
 import { Alert, Snackbar } from '@mui/material';
 import contractJSON from './GreenDao.json';
-import { BNtoNumber } from './helpers';
+import ERC20JSON from './ERC20.json';
+import { BNtoNumber, BNtoSring, USDCToNumber } from './helpers';
 import DonateForm from '../Components/Molecules/DonateForm';
 
 type GlobalContextType = {
@@ -162,6 +163,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
   //Donation
   const [openDonationForm, setOpenDonationForm] = useState<boolean>(false);
+  const [approvalLoading, setApprovalLoading] = useState<boolean>(false);
+  const [donationLoading, setDonationLoading] = useState<boolean>(false);
+  const [txHash, setTxHash] = useState<string>('');
 
   //Other
   const [ourImpact, setOurImpact] = useState<DAOImpact | null>(null);
@@ -266,9 +270,16 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       if (!!contractInstance) {
         const answer = await contractInstance.isMember(userAddress);
         setIsMember(answer);
+        console.log('is member', answer);
         if (answer) {
-          const member = await contractInstance.members(userAddress);
-          setMember(member);
+          const [lastRoundPaid, votes] = await contractInstance.members(userAddress);
+          const lastVotes = await contractInstance.getProjectsMemberVotedFor(userAddress);
+          console.log('last votes', lastVotes);
+          setMember({
+            address: userAddress ?? '',
+            votesRemaining: BNtoNumber(votes),
+            lastVotes,
+          });
         }
       }
     } catch (error: any) {
@@ -417,15 +428,47 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   //Donation
   const sendDonation = async (amount: number) => {
     try {
-      if (!!contractInstance) {
+      if (!signer) {
+        setAlert({
+          open: true,
+          description: `Please connect your Wallet using Metamask to be able to donate`,
+          severity: 'error',
+        });
+      } else if (!!contractInstance) {
+        setTxHash('');
         const donation = BigNumber.from(10).pow(18).mul(amount);
-        // APPROVE TO DO
-        const answer = await contractInstance.donate(donation);
-        console.log('DONATION ANSWER', answer);
+        const tokenAddr = (await contractInstance?.token()) ?? '';
+        const USDC = new ethers.Contract(tokenAddr, ERC20JSON.abi, signer);
+
+        //Checking if the user has already allowed our contract to use his USDC
+        const allowance = await USDC.allowance(
+          await signer.getAddress(),
+          contractAddress
+        );
+        if (BigNumber.from(allowance).lt(donation)) {
+          // Need approval
+          setApprovalLoading(true);
+          const approvalTx = await USDC.connect(signer).approve(
+            contractAddress,
+            donation
+          );
+          console.log('approval', approvalTx);
+          await approvalTx.wait();
+          console.log('approval minted');
+          setApprovalLoading(false);
+        }
+        setDonationLoading(true);
+        const donationTx = await contractInstance.donate(donation);
+        await donationTx.wait();
+        console.log('DONATION ANSWER', donationTx);
         await checkIfMember();
+        setTxHash(donationTx.hash);
+        setDonationLoading(false);
       }
     } catch (error: any) {
       console.log(error);
+      setApprovalLoading(false);
+      setDonationLoading(false);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
@@ -435,37 +478,42 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   };
 
   //Other
+  const getContractBalance = async () => {
+    try {
+      const tokenAddr = (await contractInstance?.token()) ?? '';
+      console.log('tokenAddr', tokenAddr);
+      const signerOrProvider =
+        signer ??
+        new ethers.providers.AlchemyProvider(
+          'maticmum',
+          process.env.REACT_APP_ALCHEMY_URL_API_KEY
+        );
+      const USDC = new ethers.Contract(tokenAddr, ERC20JSON.abi, signerOrProvider);
+      const USDCBalance = await USDC.balanceOf(contractAddress);
+      return BigNumber.from(USDCBalance);
+    } catch (error: any) {
+      console.log(error);
+      return BigNumber.from(0);
+    }
+  };
+
   const getDOAImpact = async () => {
     try {
-      //smart contract = one function that gives back all the info
       if (!!contractInstance) {
-        const tokenAddr = await contractInstance.token();
-        const balance = BigNumber.from(0); //Deal with IERC20 address to check that ?
+        const balance = await getContractBalance();
         // const members = await contractInstance.DAOMembers();
-        const projectsContributed = BNtoNumber(
-          await contractInstance.totalPaidProjects()
-        );
-        const donators = BNtoNumber(await contractInstance.anonymousDonations());
-        const alreadySent = BigNumber.from(await contractInstance.totalCollected()).sub(
-          balance
-        );
+        const projectsContributed = await contractInstance.totalPaidProjects();
+        const donators = await contractInstance.anonymousDonations();
+        const totalCollected = await contractInstance.totalCollected();
+        const alreadySent = BigNumber.from(totalCollected).sub(balance);
         setOurImpact({
-          balance: BNtoNumber(balance),
-          members: 0,
-          projectsContributed,
-          donators,
-          alreadySent: BNtoNumber(alreadySent),
+          balance: USDCToNumber(balance),
+          members: 1,
+          projectsContributed: BNtoNumber(projectsContributed),
+          donators: BNtoNumber(donators),
+          alreadySent: USDCToNumber(alreadySent),
         });
       }
-      // else {
-      //   setOurImpact({
-      //     balance: 10,
-      //     members: 20,
-      //     projectsContributed: 30,
-      //     donators: 100,
-      //     alreadySent: 50,
-      //   });
-      // }
     } catch (error: any) {
       console.log(error);
       setAlert({
@@ -552,6 +600,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         open={openDonationForm}
         onClose={() => setOpenDonationForm(false)}
         onSubmit={sendDonation}
+        {...{ donationLoading, txHash, approvalLoading, isMember }}
       />
       <Snackbar
         open={alert.open}

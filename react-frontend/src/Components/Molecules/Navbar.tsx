@@ -10,7 +10,10 @@ type NavbarProps = {
 };
 
 const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
-  const { isConnected, connectWallet, setOpenDonationForm } = useContext(GlobalContext);
+  const { isConnected, connectWallet, setOpenDonationForm, isMember, member } =
+    useContext(GlobalContext);
+
+  const votes = member?.votesRemaining ?? 0;
 
   return (
     <div className='navbar'>
@@ -33,7 +36,18 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
         </Button>
         {onMemberPage ? (
           isConnected ? (
-            <div>Your are connected!</div>
+            isMember ? (
+              <div>
+                <span className='bold'>
+                  Welcome back D2R Member! <br />
+                </span>
+                You currently have {votes} vote{votes > 1 && 's'}
+              </div>
+            ) : (
+              <div>
+                Your are connected! <br /> You can contribute to D2R
+              </div>
+            )
           ) : (
             <Button onClick={connectWallet} variant='text' className='link'>
               Connect your wallet

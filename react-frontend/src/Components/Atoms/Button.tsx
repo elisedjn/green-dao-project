@@ -1,4 +1,4 @@
-import { Button as MUIButton } from '@mui/material';
+import { Button as MUIButton, CircularProgress } from '@mui/material';
 import React, { ReactNode } from 'react';
 import './Button.scss';
 
@@ -9,6 +9,7 @@ type ButtonType = {
   onClick: () => any;
   className?: string;
   disabled?: boolean;
+  loading?: boolean;
 };
 
 const Button: React.FC<ButtonType> = ({
@@ -18,18 +19,19 @@ const Button: React.FC<ButtonType> = ({
   children,
   className = '',
   disabled = false,
+  loading = false,
 }) => {
   // by default, outlined will be contained and color will be primary
   // children will be the value we put inbetween the Button tags <Button>This is the children</Button>
   return (
     <MUIButton
       className={['DAO-button', className].join(' ')}
-      onClick={onClick}
+      onClick={() => (loading ? () => {} : onClick())}
       variant={variant}
       color={color}
       disabled={disabled}
     >
-      {children}
+      {loading ? <CircularProgress /> : children}
     </MUIButton>
   );
 };
