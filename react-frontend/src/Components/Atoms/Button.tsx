@@ -31,7 +31,7 @@ const Button: React.FC<ButtonType> = ({
       color={color}
       disabled={disabled}
     >
-      {loading ? <CircularProgress /> : children}
+      {loading ? <CircularProgress color='inherit' /> : children}
     </MUIButton>
   );
 };

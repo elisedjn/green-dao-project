@@ -9,7 +9,6 @@ chai.use(solidity);
 const { expect, assert } = chai;
 
 const pricePerVote = BigNumber.from(10).pow(18).mul(40);
-const oneWeekInSec = 7 * 24 * 3600;
 
 const RoundStatus = {
   Propose: 0,
