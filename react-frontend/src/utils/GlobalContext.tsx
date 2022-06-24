@@ -3,7 +3,7 @@ import { BigNumber, ethers } from 'ethers';
 import { AlertInfo, DAOImpact, Member, Project } from './types';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
 import { Alert, Snackbar } from '@mui/material';
-import contractJSON from './GreenDAO.json';
+import contractJSON from './GreenDao.json';
 import { BNtoNumber } from './helpers';
 import DonateForm from '../Components/Molecules/DonateForm';
 
@@ -32,17 +32,17 @@ export const GlobalContext = createContext<GlobalContextType>({
   isConnected: false,
   isMember: false,
   member: null,
-  voteForProject: async () => {},
+  voteForProject: async () => { },
   highlightedProjects: [],
   currentProjects: [],
   roundStatus: 'propose',
   uploadImageToIPFS: async () => '',
-  submitNewProject: async () => {},
-  connectWallet: async () => {},
+  submitNewProject: async () => { },
+  connectWallet: async () => { },
   ourImpact: null,
-  setAlert: () => {},
+  setAlert: () => { },
   timeVal: 0,
-  setOpenDonationForm: () => {},
+  setOpenDonationForm: () => { },
 });
 
 const contractAddress = '0x7e56d931c474c2874D688226cc9eF7295A6a0cB7';

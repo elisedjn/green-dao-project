@@ -88,8 +88,17 @@ const DAORules = ({
               be considered for funding.
             </li>
             <li>
+              Project representatives are invited to join the community and
+              introduce their own projects!
+            </li>
+            <li>
               D2R accepts project proposals during{' '}
               <span className='bold'>the first 3 weeks</span> of each round.
+              Projects can not be added while voting is live.
+            </li>
+            <li>
+              Members must contribute a minimum of 40 USDC to the current round{' '}
+              <span className='bold'>before</span> adding a project.
             </li>
             <li>
               A project{' '}
@@ -98,9 +107,12 @@ const DAORules = ({
               awards.
             </li>
             <li>
-              This is not done but that's all for tonight. Want to include some wording
-              about start-up visibility, networking for project owners, building community
-              in the ecosystem.
+              The 3 projects receiving the most votes during each round will be funded
+              and added to our home page.
+            </li>
+            <li>
+              Proposed projects will be cleared at the close of each round; the next round
+              will start with a blank slate.
             </li>
           </ul>
           {roundStatus === 'propose' ? (
@@ -108,9 +120,9 @@ const DAORules = ({
               onClick={() =>
                 !isMember
                   ? setAlert({
-                      open: true,
-                      description: 'You need to be a member to propose a project',
-                    })
+                    open: true,
+                    description: 'You need to be a member to propose a project',
+                  })
                   : setOpenProjectForm(true)
               }
             >
