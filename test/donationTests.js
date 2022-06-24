@@ -86,5 +86,21 @@ describe('Donation Tests', function () {
       expect(await contract.anonymousDonations()).to.equal(1);
       expect(await token.balanceOf(contract.address)).to.equal(donation);
     });
+
+    it('Should increase the number of votes if a member gives a second time', async () => {
+      const donation = BigNumber.from(10).pow(18).mul(40);
+      await token.connect(member1).approve(contract.address, donation);
+      await contract.connect(member1).donate(donation);
+      const addr1 = await member1.getAddress();
+      const [votes1, lastRoundPaid1] = await contract.members(addr1);
+      // The same user send 80 USDC
+      await network.provider.send('evm_increaseTime', [24 * 3600]);
+      await network.provider.send('evm_mine');
+      const donation2 = BigNumber.from(10).pow(18).mul(80);
+      await token.connect(member1).approve(contract.address, donation2);
+      await contract.connect(member1).donate(donation2);
+      const [votes2, lastRoundPaid2] = await contract.members(addr1);
+      expect(votes2).to.equal(3);
+    });
   });
 });

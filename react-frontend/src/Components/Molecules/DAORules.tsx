@@ -45,8 +45,11 @@ const DAORules = ({
             </li>
             <li>
               Once you are a member,
-              <span className='bold'> you can buy vote credits anytime</span>, even during
-              voting phase.
+              <span className='bold'>
+                {' '}
+                you can buy vote credits during proposal phase only
+              </span>
+              .
             </li>
             <li>
               Contributions of less than 40 USDC are{' '}
@@ -88,13 +91,13 @@ const DAORules = ({
               be considered for funding.
             </li>
             <li>
-              Project representatives are invited to join the community and
-              introduce their own projects!
+              Project representatives are invited to join the community and introduce
+              their own projects!
             </li>
             <li>
               D2R accepts project proposals during{' '}
-              <span className='bold'>the first 3 weeks</span> of each round.
-              Projects can not be added while voting is live.
+              <span className='bold'>the first 3 weeks</span> of each round. Projects can
+              not be added while voting is live.
             </li>
             <li>
               Members must contribute a minimum of 40 USDC to the current round{' '}
@@ -107,8 +110,8 @@ const DAORules = ({
               awards.
             </li>
             <li>
-              The 3 projects receiving the most votes during each round will be funded
-              and added to our home page.
+              The 3 projects receiving the most votes during each round will be funded and
+              added to our home page.
             </li>
             <li>
               Proposed projects will be cleared at the close of each round; the next round
@@ -120,9 +123,9 @@ const DAORules = ({
               onClick={() =>
                 !isMember
                   ? setAlert({
-                    open: true,
-                    description: 'You need to be a member to propose a project',
-                  })
+                      open: true,
+                      description: 'You need to be a member to propose a project',
+                    })
                   : setOpenProjectForm(true)
               }
             >

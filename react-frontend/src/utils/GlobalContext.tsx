@@ -272,14 +272,11 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         setIsMember(answer);
         console.log('is member', answer);
         if (answer) {
-          const [lastRoundPaid, votes] = await contractInstance.members(userAddress);
-          const current = await contractInstance.getCurrentRound();
-          console.log('lastRoundPaid', BNtoNumber(lastRoundPaid), BNtoNumber(current));
+          const infos = await contractInstance.members(userAddress);
           const lastVotes = await contractInstance.getProjectsMemberVotedFor(userAddress);
-          console.log('last votes', lastVotes);
           setMember({
             address: userAddress ?? '',
-            votesRemaining: BNtoNumber(votes),
+            votesRemaining: BNtoNumber(infos.votes),
             lastVotes,
           });
         }
@@ -503,7 +500,12 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
     try {
       if (!!contractInstance) {
         const balance = await getContractBalance();
-        // const members = await contractInstance.DAOMembers();
+
+        const members = await contractInstance.members(userAddress);
+        console.log('members', members);
+        const currentRound = await contractInstance.getCurrentRound();
+        console.log('round', currentRound);
+
         const projectsContributed = await contractInstance.totalPaidProjects();
         const donators = await contractInstance.anonymousDonations();
         const totalCollected = await contractInstance.totalCollected();

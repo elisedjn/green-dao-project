@@ -112,7 +112,7 @@ contract GreenDAO is KeeperCompatibleInterface {
                 members[msg.sender].lastRoundPaid = currentRound;
                 members[msg.sender].votes = 0;
             }
-            members[msg.sender].votes += amount / pricePerVote;
+            members[msg.sender].votes += (amount / pricePerVote);
 
             return members[msg.sender].votes;
         }
