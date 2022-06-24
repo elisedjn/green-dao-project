@@ -33,17 +33,17 @@ export const GlobalContext = createContext<GlobalContextType>({
   isConnected: false,
   isMember: false,
   member: null,
-  voteForProject: async () => {},
+  voteForProject: async () => { },
   highlightedProjects: [],
   currentProjects: [],
   roundStatus: 'propose',
   uploadImageToIPFS: async () => '',
-  submitNewProject: async () => {},
-  connectWallet: async () => {},
+  submitNewProject: async () => { },
+  connectWallet: async () => { },
   ourImpact: null,
-  setAlert: () => {},
+  setAlert: () => { },
   timeVal: 0,
-  setOpenDonationForm: () => {},
+  setOpenDonationForm: () => { },
 });
 
 const contractAddress = '0x7e56d931c474c2874D688226cc9eF7295A6a0cB7';
