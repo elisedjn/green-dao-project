@@ -3,7 +3,7 @@ import { BigNumber, ethers } from 'ethers';
 import { AlertInfo, DAOImpact, Member, Project } from './types';
 import { create, IPFSHTTPClient } from 'ipfs-http-client';
 import { Alert, Snackbar } from '@mui/material';
-import contractJSON from './GreenDAO.json';
+import contractJSON from './GreenDao.json';
 import { BNtoNumber } from './helpers';
 import DonateForm from '../Components/Molecules/DonateForm';
 
@@ -440,11 +440,44 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       //smart contract = one function that gives back all the info
       if (!!contractInstance) {
         const tokenAddr = await contractInstance.token();
-        const balance = BigNumber.from(0); //Deal with IERC20 address to check that ?
+        console.log("token add", tokenAddr);
+        // const balance = BigNumber.from(0); //Deal with IERC20 address to check that ?
         // const members = await contractInstance.DAOMembers();
+
+        //index.js
+
+        // The minimum ABI to get ERC20 Token balance
+
+        const minABI = [
+          // balanceOf
+          {
+            constant: true,
+
+            inputs: [{ name: "_owner", type: "address" }],
+
+            name: "balanceOf",
+
+            outputs: [{ name: "balance", type: "uint256" }],
+
+            type: "function",
+          },
+
+        ];
+        // RILEY: Attempting to get the balance in ERC20
+        async function getBalance() {
+          const result = await contract.methods.balanceOf(contractAddress).call(); // 29803630997051883414242659
+
+          const provider = new ethers.providers.Web3Provider(ethereum);
+          const format = provider.utils.fromWei(result); // 29803630.997051883414242659
+
+          console.log(format);
+        }
+        const balance = contractInstance(tokenAddr).balanceOf(contractAddress);
+        console.log(balance);
         const projectsContributed = BNtoNumber(
           await contractInstance.totalPaidProjects()
         );
+        console.log("this balance", getBalance());
         const donators = BNtoNumber(await contractInstance.anonymousDonations());
         const alreadySent = BigNumber.from(await contractInstance.totalCollected()).sub(
           balance
