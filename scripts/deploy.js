@@ -1,9 +1,8 @@
 const { BigNumber } = require('ethers');
 const hre = require('hardhat');
-const fs = require('fs');
 
 async function main() {
-  const USDCMumbaiAddress = '';
+  const USDCMumbaiAddress = '0xe11a86849d99f524cac3e7a0ec1241828e332c62';
   const pricePerVote = BigNumber.from(10).pow(18).mul(40);
   const GreenDAO = await ethers.getContractFactory('GreenDAO');
   const greenDAO = await GreenDAO.deploy(USDCMumbaiAddress, pricePerVote);
@@ -11,8 +10,6 @@ async function main() {
   await greenDAO.deployed();
 
   console.log('GreenDAO deployed to:', greenDAO.address);
-  const config = { address: greenDAO.address };
-  fs.writeFileSync('./app/__config.json', JSON.stringify(config, null, 2));
 }
 
 main()
