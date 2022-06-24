@@ -46,7 +46,13 @@ const ProjectCard: React.FC<ProjectCardType> = ({ project, inMemberPage, member 
             {project.votes ?? 0} <HowToVote />
           </div>
         )}
-        <CardMedia component='img' height='300' image={image} alt={title} />
+        <CardMedia
+          component='img'
+          height='300'
+          image={image}
+          src={!image ? '/bigLogo.png' : ''}
+          alt={title}
+        />
         <CardContent
           className={inMemberPage ? 'project-content big-card' : 'project-content'}
         >
