@@ -8,11 +8,14 @@ const CircularProgressWithLabel = (
   const [progress, setProgress] = React.useState(0);
 
   useEffect(() => {
+    const duration = props.maxValue > 50 ? 50 : 100;
     const timer = setInterval(() => {
       setProgress((prevProgress) =>
-        prevProgress >= props.maxValue ? props.maxValue : prevProgress + 1
+        prevProgress >= props.maxValue
+          ? props.maxValue
+          : prevProgress + (props.maxValue > 50 ? 5 : 1)
       );
-    }, 100);
+    }, duration);
     return () => {
       clearInterval(timer);
     };

@@ -17,7 +17,7 @@ type GlobalContextType = {
   currentProjects: Project[];
   roundStatus: 'propose' | 'vote';
   uploadImageToIPFS: (file: any) => Promise<string>;
-  submitNewProject: (project: Project) => Promise<void>;
+  submitNewProject: (project: Project) => Promise<boolean>;
   connectWallet: () => Promise<void>;
   ourImpact: DAOImpact | null;
   setAlert: React.Dispatch<React.SetStateAction<AlertInfo>>;
@@ -38,7 +38,7 @@ export const GlobalContext = createContext<GlobalContextType>({
   currentProjects: [],
   roundStatus: 'propose',
   uploadImageToIPFS: async () => '',
-  submitNewProject: async () => {},
+  submitNewProject: async () => false,
   connectWallet: async () => {},
   ourImpact: null,
   setAlert: () => {},
@@ -326,13 +326,15 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       }
 
       await getCurrentProjects();
+      return true;
     } catch (error: any) {
-      console.log('Submit new project', error);
+      console.log('Submit new project', error.message);
       setAlert({
         open: true,
         description: `Oops, something went wrong : ${error.message}`,
         severity: 'error',
       });
+      return false;
     }
   };
 

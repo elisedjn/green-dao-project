@@ -73,14 +73,16 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
       checkErrors();
       console.log('errors', errors);
       if (errors.length > 0) return;
-      onSubmit(project);
-      handleClose();
-      setAlert({
-        description:
-          'Your project has been accepted, thank you! It will shortly be shown on the list.',
-        severity: 'success',
-        open: true,
-      });
+      const success = await onSubmit(project);
+      if (success) {
+        handleClose();
+        setAlert({
+          description:
+            'Your project has been accepted, thank you! It will shortly be shown on the list.',
+          severity: 'success',
+          open: true,
+        });
+      }
     } catch (error: any) {
       setAlert({
         description: `Sorry, something went wrong : ${error.message} `,
