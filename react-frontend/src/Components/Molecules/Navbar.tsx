@@ -45,7 +45,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMemberPage = false }) => {
               </div>
             ) : (
               <div>
-                Your are connected! <br /> You can contribute to D2R
+                You are connected! <br /> You can contribute to D2R
               </div>
             )
           ) : (
