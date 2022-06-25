@@ -18,6 +18,7 @@ type GlobalContextType = {
   roundStatus: 'propose' | 'vote';
   uploadImageToIPFS: (file: any) => Promise<string>;
   submitNewProject: (project: Project) => Promise<boolean>;
+  submissionStatus: 'waitingConfirmation' | 'mining' | null;
   connectWallet: () => Promise<void>;
   ourImpact: DAOImpact | null;
   setAlert: React.Dispatch<React.SetStateAction<AlertInfo>>;
@@ -39,6 +40,7 @@ export const GlobalContext = createContext<GlobalContextType>({
   roundStatus: 'propose',
   uploadImageToIPFS: async () => '',
   submitNewProject: async () => false,
+  submissionStatus: null,
   connectWallet: async () => {},
   ourImpact: null,
   setAlert: () => {},
@@ -94,6 +96,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   //Projects
   const [highlightedProjects, setHighlightedProjects] = useState<Project[]>([]);
   const [currentProjects, setCurrentProjects] = useState<Project[]>([]);
+  const [submissionStatus, setSubmissionStatus] = useState<
+    null | 'waitingConfirmation' | 'mining'
+  >(null);
 
   //Round
   const [roundStatus, setRoundStatus] = useState<'propose' | 'vote'>('propose');
@@ -104,6 +109,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
   const [openDonationForm, setOpenDonationForm] = useState<boolean>(false);
   const [approvalLoading, setApprovalLoading] = useState<boolean>(false);
   const [donationLoading, setDonationLoading] = useState<boolean>(false);
+  const [donationStatus, setDonationStatus] = useState<
+    'waitingForApproval' | 'approvalMining' | 'waitingForTx' | 'txMining' | null
+  >(null);
   const [txHash, setTxHash] = useState<string>('');
 
   //Other
@@ -321,8 +329,11 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       const data = `https://ipfs.infura.io/ipfs/${added?.path}`;
 
       if (!!contractInstance) {
+        setSubmissionStatus('waitingConfirmation');
         const proposeTx = await contractInstance.addProject(data, project.address);
+        setSubmissionStatus('mining');
         await proposeTx.wait();
+        setSubmissionStatus(null);
       }
 
       await getCurrentProjects();
@@ -334,6 +345,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
+      setSubmissionStatus(null);
       return false;
     }
   };
@@ -383,6 +395,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         });
       } else if (!!contractInstance) {
         setTxHash('');
+        setDonationStatus(null);
         const donation = BigNumber.from(10).pow(18).mul(amount);
         const tokenAddr = (await contractInstance?.token()) ?? '';
         const USDC = new ethers.Contract(tokenAddr, ERC20JSON.abi, signer);
@@ -395,17 +408,21 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         if (BigNumber.from(allowance).lt(donation)) {
           // Need approval
           setApprovalLoading(true);
+          setDonationStatus('waitingForApproval');
           const approvalTx = await USDC.connect(signer).approve(
             contractAddress,
             donation
           );
           console.log('approval', approvalTx);
+          setDonationStatus('approvalMining');
           await approvalTx.wait();
           console.log('approval minted');
           setApprovalLoading(false);
         }
         setDonationLoading(true);
+        setDonationStatus('waitingForTx');
         const donationTx = await contractInstance.donate(donation);
+        setDonationStatus('txMining');
         await donationTx.wait();
         console.log('DONATION ANSWER', donationTx);
         await checkIfMember();
@@ -534,6 +551,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         highlightedProjects,
         currentProjects,
         submitNewProject,
+        submissionStatus,
         //Rounds
         roundStatus,
         timeVal,
@@ -554,7 +572,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
               }
         }
         onSubmit={sendDonation}
-        {...{ donationLoading, txHash, approvalLoading, isMember }}
+        {...{ donationLoading, donationStatus, txHash, approvalLoading, isMember }}
       />
       <Snackbar
         open={alert.open}

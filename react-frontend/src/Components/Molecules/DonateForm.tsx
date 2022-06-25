@@ -24,6 +24,12 @@ type DonateFormProps = {
   donationLoading: boolean;
   txHash: string;
   isMember: boolean;
+  donationStatus:
+    | 'waitingForApproval'
+    | 'approvalMining'
+    | 'waitingForTx'
+    | 'txMining'
+    | null;
 };
 const DonateForm: React.FC<DonateFormProps> = ({
   open,
@@ -33,6 +39,7 @@ const DonateForm: React.FC<DonateFormProps> = ({
   donationLoading,
   txHash,
   isMember,
+  donationStatus,
 }) => {
   const { roundStatus } = useContext(GlobalContext);
   const [amount, setAmount] = useState<number>(0);
@@ -111,8 +118,32 @@ const DonateForm: React.FC<DonateFormProps> = ({
             </ul>
           </>
         )}
-        {approvalLoading && <p>Waiting for approval...</p>}
-        {donationLoading && <p>Your donation is on its way, please wait...</p>}
+        {approvalLoading && (
+          <>
+            {donationStatus === 'waitingForApproval' && (
+              <p className='loading-msg'>
+                Waiting for approval, please check your Metamask...
+              </p>
+            )}
+            {donationStatus === 'approvalMining' && (
+              <p className='loading-msg'>
+                Waiting for the allowance to be mined, please wait...
+              </p>
+            )}
+          </>
+        )}
+        {donationLoading && (
+          <>
+            {donationStatus === 'waitingForTx' && (
+              <p className='loading-msg'>
+                Please check you Metamask to confirm the transaction...
+              </p>
+            )}
+            {donationStatus === 'txMining' && (
+              <p className='loading-msg'>Your donation is on its way, please wait...</p>
+            )}
+          </>
+        )}
       </DialogContent>
       <DialogActions className='action-btn'>
         {!txHash ? (

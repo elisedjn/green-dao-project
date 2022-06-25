@@ -21,7 +21,7 @@ type ProjectFormProps = {
 };
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }) => {
-  const { uploadImageToIPFS, setAlert } = useContext(GlobalContext);
+  const { uploadImageToIPFS, setAlert, submissionStatus } = useContext(GlobalContext);
   const [project, setProject] = useState<Project>({
     title: '',
     description: '',
@@ -29,6 +29,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
     link: '',
     address: '',
   });
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -70,12 +71,17 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
 
   const handleSubmit = async () => {
     try {
+      setLoading(true);
       checkErrors();
       console.log('errors', errors);
-      if (errors.length > 0) return;
+      if (errors.length > 0) {
+        setLoading(false);
+        return;
+      }
       const success = await onSubmit(project);
       if (success) {
         handleClose();
+        setLoading(false);
         setAlert({
           description:
             'Your project has been accepted, thank you! It will shortly be shown on the list.',
@@ -83,22 +89,37 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
           open: true,
         });
       }
+      setLoading(false);
     } catch (error: any) {
       setAlert({
         description: `Sorry, something went wrong : ${error.message} `,
         severity: 'error',
         open: true,
       });
+      setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth='lg' className='project-form'>
+    <Dialog
+      open={open}
+      onClose={
+        loading && submissionStatus !== 'waitingConfirmation'
+          ? () => {}
+          : () => handleClose()
+      }
+      maxWidth='lg'
+      className='project-form'
+    >
       <DialogTitle className='form-title'>
         Project proposal
         <IconButton
           aria-label='close'
-          onClick={handleClose}
+          onClick={
+            loading && submissionStatus !== 'waitingConfirmation'
+              ? () => {}
+              : () => handleClose()
+          }
           sx={{
             position: 'absolute',
             right: 20,
@@ -113,6 +134,11 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
         <DialogContentText>
           Propose a sustainable project you wanna contribute to. It will be open to votes
           on the next round.
+          {submissionStatus === 'waitingConfirmation' && (
+            <p className='loading-msg'>
+              Please check your Metamask to confirm the transaction...
+            </p>
+          )}
         </DialogContentText>
         <div className='form-fields'>
           <div className='add-image'>
@@ -182,10 +208,23 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, handleClose, onSubmit }
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} variant='text'>
+        <Button
+          onClick={handleClose}
+          disabled={loading && submissionStatus !== 'waitingConfirmation'}
+          variant='text'
+        >
           Cancel
         </Button>
-        <Button onClick={handleSubmit}>Submit</Button>
+        <Button
+          loading={loading && submissionStatus !== 'waitingConfirmation'}
+          onClick={
+            loading && submissionStatus !== 'waitingConfirmation'
+              ? () => {}
+              : () => handleSubmit()
+          }
+        >
+          Submit
+        </Button>
       </DialogActions>
     </Dialog>
   );
