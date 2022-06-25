@@ -5,7 +5,7 @@ import { create, IPFSHTTPClient } from 'ipfs-http-client';
 import { Alert, Snackbar } from '@mui/material';
 import contractJSON from './GreenDao.json';
 import ERC20JSON from './ERC20.json';
-import { BNtoNumber, BNtoSring, USDCToNumber } from './helpers';
+import { BNtoNumber, BNtoSring, displayError, USDCToNumber } from './helpers';
 import DonateForm from '../Components/Molecules/DonateForm';
 
 type GlobalContextType = {
@@ -151,7 +151,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       console.log('UploadImageToIPFS', error);
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
       return '';
@@ -223,7 +223,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       console.log('checkIfMember', error);
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
     }
@@ -248,7 +248,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       console.log('voteForProject', error);
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
     }
@@ -281,7 +281,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       console.log('getHighlightedProjects', error);
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
     }
@@ -309,7 +309,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       console.log('getCurrentProjects', error);
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
     }
@@ -328,10 +328,10 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       await getCurrentProjects();
       return true;
     } catch (error: any) {
-      console.log('Submit new project', error.message);
+      console.log('Submit new project', displayError(error.message));
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
       return false;
@@ -351,7 +351,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       console.log('getRoundStatus', error);
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
     }
@@ -419,7 +419,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       setDonationLoading(false);
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
     }
@@ -465,7 +465,7 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
       console.log('getDAOImpact', error);
       setAlert({
         open: true,
-        description: `Oops, something went wrong : ${error.message}`,
+        description: `Oops, something went wrong : ${displayError(error.message)}`,
         severity: 'error',
       });
     }
