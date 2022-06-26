@@ -57,11 +57,11 @@ const Home = () => {
               100% of funds collected by this project are sent directly and automatically
               to the protocols voted most impactful by our members. Funding proposals,
               votes, and monetary transactions are secured and made fully transparent by
-              the Ethereum(Rinkeby) blockchain. Membership is open to any individual human
+              the Polygon(Mumbai)) blockchain. Membership is open to any individual human
               interested learning about in ReFi (regenerative finance) initiatives and
               contributing to positive environmental impact.
             </p>
-            <Button onClick={() => {}}>
+            <Button onClick={() => { }}>
               <Link className='no-decoration' to='/member'>
                 Community Page
               </Link>
