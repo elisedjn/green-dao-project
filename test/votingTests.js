@@ -11,6 +11,7 @@ const { expect } = chai;
 const pricePerVote = BigNumber.from(10).pow(18).mul(40);
 const oneWeekInSec = 7 * 24 * 3600;
 const oneDay = 24 * 3600;
+const sixHours = 6 * 3600;
 
 describe('Voting Tests', function () {
   let contract;
@@ -56,7 +57,8 @@ describe('Voting Tests', function () {
     await token.transfer(addr4, amount);
 
     const GreenDAO = await ethers.getContractFactory('GreenDAO');
-    const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote);
+    const block = await ethers.provider.getBlock();
+    const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote, block.timestamp);
     await greenDAO.deployed();
     contract = greenDAO;
     console.log('contract deployed', greenDAO.address);
@@ -80,7 +82,7 @@ describe('Voting Tests', function () {
       await contract.connect(member2).addProject('new project', projectAddress1);
       await contract.connect(member2).addProject('new project', projectAddress2);
       // increasing block time by 3 weeks to switch to voting phase
-      await evm_increaseTime(oneDay);
+      await evm_increaseTime(sixHours);
       // then vote for the project
       await contract.connect(member2).voteForProject(projectAddress1, 2);
       await contract.connect(member2).voteForProject(projectAddress2, 1);

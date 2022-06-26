@@ -9,8 +9,8 @@ import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 contract GreenDAO is KeeperCompatibleInterface {
     using SafeERC20 for IERC20;
-    uint256 public constant ROUND_DURATION = 2 days;
-    uint256 public constant PROPOSAL_DURATION = 1 days;
+    uint256 public constant ROUND_DURATION = 12 hours;
+    uint256 public constant PROPOSAL_DURATION = 6 hours;
 
     address owner;
     uint256 public start;
@@ -52,9 +52,13 @@ contract GreenDAO is KeeperCompatibleInterface {
     uint256 public totalMembers;
     uint256 public anonymousDonations;
 
-    constructor(address _token, uint256 _pricePerVote) {
+    constructor(
+        address _token,
+        uint256 _pricePerVote,
+        uint256 _start
+    ) {
         owner = msg.sender;
-        start = block.timestamp;
+        start = _start;
         token = _token;
         require(
             _pricePerVote > 10**ERC20(_token).decimals(),
@@ -199,7 +203,6 @@ contract GreenDAO is KeeperCompatibleInterface {
 
         rounds[roundId].hasBeenPaid = true;
         address[] memory winners = findWinners(roundId);
-        totalPaidProjects += winners.length;
 
         //Get the number of votes for all the winner projects
         uint256 totalVotesForWinners;
@@ -212,16 +215,12 @@ contract GreenDAO is KeeperCompatibleInterface {
         for (uint256 i = 0; i < winners.length; i++) {
             address project = winners[i];
             if (project != address(0)) {
+                totalPaidProjects++;
                 rounds[roundId].winningProjects.push(project);
                 uint256 votes = projects[roundId][project].votes;
-                uint256 amount = rounds[roundId].balance *
-                    (votes / totalVotesForWinners);
-                SafeERC20.safeTransferFrom(
-                    IERC20(token),
-                    address(this),
-                    project,
-                    amount
-                );
+                uint256 amount = (rounds[roundId].balance * votes) /
+                    totalVotesForWinners;
+                SafeERC20.safeTransfer(IERC20(token), project, amount);
             }
         }
     }
