@@ -23,6 +23,8 @@ const MemberPage = () => {
     timeVal,
   } = useContext(GlobalContext);
 
+  const votes = member?.votesRemaining ?? 0;
+
   return (
     <div className='member-page'>
       <Navbar onMemberPage />
@@ -42,23 +44,28 @@ const MemberPage = () => {
             <>
               <p className='light-text'>
                 Voting phase is now open.{' '}
-                {isMember && (
+                {isMember ? (
                   <span>
-                    You have{' '}
-                    <span className='bold'>
-                      {member?.votesRemaining ?? 0} vote
-                      {(member?.votesRemaining ?? 0) > 1 && 's'}
-                    </span>{' '}
-                    remaining.
+                    {votes > 0 ? (
+                      <>
+                        You have{' '}
+                        <span className='bold'>
+                          {votes} vote
+                          {votes > 1 && 's'}
+                        </span>{' '}
+                        remaining. Cast your votes!
+                      </>
+                    ) : (
+                      <>You don't have anymore votes remaining for this round.</>
+                    )}
                   </span>
-                )}{' '}
-                Cast your votes!
+                ) : (
+                  <span>
+                    <br />
+                    Become a member during next round to be able to vote!{' '}
+                  </span>
+                )}
               </p>
-              {isMember && (
-                <Button onClick={console.log} className='get-more-votes' variant='text'>
-                  Get more votes
-                </Button>
-              )}
             </>
           )}
           {!currentProjects.length && (
