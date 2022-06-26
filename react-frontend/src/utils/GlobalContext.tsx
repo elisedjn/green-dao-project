@@ -373,9 +373,9 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
 
   const getPeriodRemainingTime = () => {
     //returns a number in miliSeconds
-    const oneDayInMs = 24 * 3600 * 1000;
-    const roundDuration = 2 * oneDayInMs;
-    const proposalDuration = 1 * oneDayInMs;
+    const sixHours = 6 * 3600 * 1000;
+    const roundDuration = 2 * sixHours;
+    const proposalDuration = 1 * sixHours;
     const duration = Date.now() - (contractStartTime ?? 0) * 1000; //contractStartTime is in seconds since unix epoch
     if (duration % roundDuration < proposalDuration) {
       //Proposal phase
