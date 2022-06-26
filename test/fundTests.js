@@ -72,7 +72,8 @@ describe('Funds Tests', function () {
     await token.transfer(addr4, amount);
 
     const GreenDAO = await ethers.getContractFactory('GreenDAO');
-    const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote);
+    const block = await ethers.provider.getBlock();
+    const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote, block.timestamp);
     await greenDAO.deployed();
     contract = greenDAO;
     console.log('contract deployed', greenDAO.address);
@@ -241,6 +242,7 @@ describe('Funds Tests', function () {
         await contract.distribute2Projects();
         const [winAddr, winInfo] = await contract.getLastWinners();
         expect([winAddr].includes([projectAddress2, projectAddress3, projectAddress4]));
+        expect(await token.balanceOf(projectAddress2)).to.be.gt(0);
         // console.log("winning addr", winAddr, "proj info", winInfo);
         // console.log("maybe shows total", totalCollected);
       });

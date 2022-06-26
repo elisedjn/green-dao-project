@@ -32,7 +32,8 @@ describe('Constructor Tests', function () {
     console.log('token deployed', token.address);
 
     const GreenDAO = await ethers.getContractFactory('GreenDAO');
-    const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote);
+    const block = await ethers.provider.getBlock();
+    const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote, block.timestamp);
     await greenDAO.deployed();
     contract = greenDAO;
     console.log('contract deployed', greenDAO.address);

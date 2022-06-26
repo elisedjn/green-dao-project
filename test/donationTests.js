@@ -51,7 +51,8 @@ describe('Donation Tests', function () {
     await token.transfer(addr4, amount);
 
     const GreenDAO = await ethers.getContractFactory('GreenDAO');
-    const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote);
+    const block = await ethers.provider.getBlock();
+    const greenDAO = await GreenDAO.deploy(tokenAddress, pricePerVote, block.timestamp);
     await greenDAO.deployed();
     contract = greenDAO;
     console.log('contract deployed', greenDAO.address);

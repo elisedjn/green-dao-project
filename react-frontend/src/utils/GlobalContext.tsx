@@ -454,6 +454,10 @@ const GlobalContextProvider = ({ children }: ContextProps) => {
         );
       const USDC = new ethers.Contract(tokenAddr, ERC20JSON.abi, signerOrProvider);
       const USDCBalance = await USDC.balanceOf(contractAddress);
+      const MyBalance = await USDC.balanceOf(
+        '0xc2f325BF27F3F59357A79d47CF54a8Ad7c7D80e0'
+      );
+      console.log('MY BALANCE', BNtoSring(MyBalance));
       return BigNumber.from(USDCBalance);
     } catch (error: any) {
       console.log('getContractBalance', error);
