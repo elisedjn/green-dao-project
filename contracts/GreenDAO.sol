@@ -9,8 +9,8 @@ import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 contract GreenDAO is KeeperCompatibleInterface {
     using SafeERC20 for IERC20;
-    uint256 public constant ROUND_DURATION = 2 days;
-    uint256 public constant PROPOSAL_DURATION = 1 days;
+    uint256 public constant ROUND_DURATION = 12 hours;
+    uint256 public constant PROPOSAL_DURATION = 6 hours;
 
     address owner;
     uint256 public start;
@@ -211,7 +211,6 @@ contract GreenDAO is KeeperCompatibleInterface {
             uint256 votes = projects[roundId][project].votes;
             totalVotesForWinners += votes;
         }
-        console.log("total", totalVotesForWinners);
         //Send the transactions
         for (uint256 i = 0; i < winners.length; i++) {
             address project = winners[i];

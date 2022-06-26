@@ -11,6 +11,7 @@ const { expect, assert } = chai;
 const pricePerVote = BigNumber.from(10).pow(18).mul(40);
 const oneWeekInSec = 7 * 24 * 3600;
 const oneDay = 24 * 3600;
+const sixHours = 6 * 3600;
 
 const RoundStatus = {
   Propose: 0,
@@ -113,7 +114,7 @@ describe('Funds Tests', function () {
       await contract.connect(member3).addProject('new project', projectAddress5);
 
       // Going to vote phase
-      evm_increaseTime(oneDay);
+      evm_increaseTime(sixHours);
     });
 
     describe('check the number of members', () => {
@@ -137,7 +138,7 @@ describe('Funds Tests', function () {
         await contract.connect(member3).voteForProject(projectAddress3, 3);
 
         //Going to next round
-        await network.provider.send('evm_increaseTime', [oneDay]);
+        await network.provider.send('evm_increaseTime', [sixHours]);
         await network.provider.send('evm_mine');
 
         await contract.distribute2Projects();
@@ -157,7 +158,7 @@ describe('Funds Tests', function () {
         await contract.connect(member3).voteForProject(projectAddress3, 3);
 
         //Going to next round
-        await network.provider.send('evm_increaseTime', [oneDay]);
+        await network.provider.send('evm_increaseTime', [sixHours]);
         await network.provider.send('evm_mine');
 
         await contract.distribute2Projects();
@@ -179,7 +180,7 @@ describe('Funds Tests', function () {
         await contract.connect(member3).voteForProject(projectAddress3, 3);
 
         //Going to next round
-        await network.provider.send('evm_increaseTime', [oneDay]);
+        await network.provider.send('evm_increaseTime', [sixHours]);
         await network.provider.send('evm_mine');
 
         await contract.distribute2Projects();
@@ -202,7 +203,7 @@ describe('Funds Tests', function () {
         await contract.connect(member3).voteForProject(projectAddress3, 3);
 
         //Going to next round
-        await network.provider.send('evm_increaseTime', [oneDay]);
+        await network.provider.send('evm_increaseTime', [sixHours]);
         await network.provider.send('evm_mine');
 
         await contract.distribute2Projects();
@@ -236,7 +237,7 @@ describe('Funds Tests', function () {
         await contract.connect(member3).voteForProject(projectAddress3, 3);
 
         //Going to next round
-        await network.provider.send('evm_increaseTime', [oneDay]);
+        await network.provider.send('evm_increaseTime', [sixHours]);
         await network.provider.send('evm_mine');
 
         await contract.distribute2Projects();
@@ -263,7 +264,7 @@ describe('Funds Tests', function () {
         await contract.connect(member3).voteForProject(projectAddress3, 1);
 
         // Going to next round
-        await network.provider.send('evm_increaseTime', [oneDay]);
+        await network.provider.send('evm_increaseTime', [sixHours]);
         await network.provider.send('evm_mine');
 
         await contract.distribute2Projects();
@@ -281,7 +282,7 @@ describe('Funds Tests', function () {
         await contract.connect(member2).voteForProject(projectAddress2, 1);
 
         // Going to next round
-        await network.provider.send('evm_increaseTime', [oneDay]);
+        await network.provider.send('evm_increaseTime', [sixHours]);
         await network.provider.send('evm_mine');
         await contract.distribute2Projects();
 
@@ -299,7 +300,7 @@ describe('Funds Tests', function () {
   });
 
   it('Should revert if no projects were proposed', async function () {
-    await network.provider.send('evm_increaseTime', [oneDay * 2]);
+    await network.provider.send('evm_increaseTime', [sixHours * 2]);
     await network.provider.send('evm_mine');
     await expect(contract.distribute2Projects()).to.be.revertedWith(
       'There are no projects to distribute this round'
